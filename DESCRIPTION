@@ -10,4 +10,7 @@ Imports:
     tidyr,
     xgboost,
     lightgbm,
-    glmnet
+    glmnet,
+    ISLR,
+    ggplot2,
+    GGally
