@@ -5,6 +5,8 @@ library(ggplot2)
 library(tidyr)
 library(MASS)
 
+
+image_path <- "isl/chapter_2/images/"
 # Write dataset to CSV
 # library(ISLR)
 #
@@ -77,7 +79,7 @@ table(df_college$elite)
 box_plot_elite <- ggplot2::ggplot(data = df) +
   ggplot2::geom_boxplot(ggplot2::aes(x = elite, y = Outstate, fill = elite))
 
-ggplot2::ggsave("isl/chapter_2/images/college_boxplot_elite.png", box_plot_elite)
+ggplot2::ggsave(paste0(image_path, "/college_boxplot_elite.png"), box_plot_elite)
 
 df_auto <- read.csv("isl/chapter_2/data/auto.csv")
 
@@ -162,7 +164,7 @@ df_auto %>%
 
 pairwise_plot_auto <- GGally::ggpairs(data=df_auto, columns=1:5)
 
-ggplot2::ggsave("isl/chapter_2/images/auto_pairwise_plot.png", pairwise_plot_auto)
+ggplot2::ggsave(paste0(image_path, "/auto_pairwise_plot.png"), pairwise_plot_auto)
 
 
 # Looks like displacement and mpg are negatively correlated, with maybe an inverse
@@ -175,7 +177,7 @@ dim(df_boston)
 
 boston_pairs_plot <- GGally::ggpairs(df_boston, columns=1:10)
 
-ggplot2::ggsave("isl/chapter_2/images/boston_pairwise_plot.png", boston_pairs_plot)
+ggplot2::ggsave(paste0(image_path, "/boston_pairwise_plot.png"), boston_pairs_plot)
 
 # High crime has low dis
 

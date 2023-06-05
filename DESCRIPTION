@@ -13,4 +13,7 @@ Imports:
     glmnet,
     ISLR,
     ggplot2,
-    GGally
+    GGally,
+    car,
+    gridExtra,
+    ggfortify
