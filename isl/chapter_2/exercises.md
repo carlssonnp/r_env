@@ -1,13 +1,6 @@
 -   [Conceptual](#conceptual)
     -   [Question 1](#question-1)
-        -   [a](#a)
-        -   [b](#b)
-        -   [c](#c)
-        -   [d](#d)
     -   [Question 2](#question-2)
-        -   [a.](#a.)
-        -   [b.](#b.)
-        -   [c.](#c.)
     -   [Question 3](#question-3)
 -   [Applied](#applied)
 
@@ -49,17 +42,17 @@ case.
 
 ## Question 2
 
-### a.
+### a
 
 This is a regression problem, as CEO salary is a continuous variable. We
 are most interested in inference here. `n` = 500, `p` = 3.
 
-### b.
+### b
 
 This is a classification problem, as the response variable is binary. We
 are most interested in prediction. `n` = 20, `p` = 13.
 
-### c.
+### c
 
 This is a regression problem, as %change is a continuous variable. We
 are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =

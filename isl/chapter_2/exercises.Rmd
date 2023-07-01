@@ -4,8 +4,10 @@ date: 2023-07-01
 output:
   md_document:
     toc: true
+    toc_depth: 2
   html_document:
     toc: true
+    toc_depth: 2
 
 ---
 
@@ -43,15 +45,15 @@ variable and the predictors. The flexible method will have very high variance in
 
 ## Question 2
 
-### a.
+### a
 This is a regression problem, as CEO salary is a continuous variable. We are most
 interested in inference here. `n` = 500, `p` = 3.
 
-### b.
+### b
 This is a classification problem, as the response variable is binary. We are most interested in prediction.
 `n` = 20, `p` = 13.
 
-### c.
+### c
 This is a regression problem, as %change is a continuous variable. We are most interested in prediction.
 `n` = 52 (52 weeks in a year), `p` = 3.
 
