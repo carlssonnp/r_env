@@ -67,37 +67,42 @@ This is a regression problem, as %change is a continuous variable. We are most i
 
 ```{r error_source_graph, }
 
+flexibility <- c(2, 15, 25)
+
 df_bias_squared <- data.frame(
-  flexibility = c(2, 15, 25),
+  flexibility = flexibility,
   error = c(1, 0.008, 0.005)
 )
 df_bias_squared$source <- "bias_squared"
 
 df_variance <- data.frame(
-  flexibility = c(2, 15, 25),
+  flexibility = flexibility,
   error = c(0.01, 0.25, 1)
 )
 df_variance$source <- "variance"
 
 df_training_error <- data.frame(
-  flexibility = c(2, 10, 25),
+  flexibility = flexibility,
   error = df_bias_squared$error * 0.8
 )
 df_training_error$source <- "training_error"
 
+irreducible_error <- 0.5
 df_irreducible_error <- data.frame(
   flexibility = c(0, 25),
-  error = c(0.5, 0.5)
+  error = rep(irreducible_error, 2)
 )
 df_irreducible_error$source <- "irreducible_error"
 
 df_total_error <- data.frame(
-  flexibility = c(2, 15, 25),
+  flexibility = flexibility,
   error = df_bias_squared$error + df_variance$error + df_irreducible_error$error[[1]]
 )
 df_total_error$source <- "test_error"
 
-df_errors <- dplyr::bind_rows(df_bias_squared, df_variance, df_training_error, df_total_error)
+df_errors <- dplyr::bind_rows(
+  df_bias_squared, df_variance, df_training_error, df_total_error
+)
 
 ggplot2::ggplot(df_errors) +
   ggplot2::geom_smooth(ggplot2::aes(x = flexibility, y = error, color = source)) +
