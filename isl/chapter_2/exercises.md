@@ -1,4 +1,4 @@
-**# ISLR Chapter 2 Exercises**
+# **ISLR Chapter 2 Exercises**
 
 -   [1 Conceptual](#conceptual)
     -   [1.1 Question 1](#question-1)
