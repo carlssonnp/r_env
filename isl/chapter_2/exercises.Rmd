@@ -106,7 +106,8 @@ df_errors <- dplyr::bind_rows(
 
 ggplot2::ggplot(df_errors) +
   ggplot2::geom_smooth(ggplot2::aes(x = flexibility, y = error, color = source)) +
-  ggplot2::geom_line(data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source))
+  ggplot2::geom_line(data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source)) +
+  ggplot2::labs(x = "Flexibility", y = "Error", title = "Error versus Flexibility for different error sources")
 ```
 
 ## Applied
