@@ -74,7 +74,7 @@ df_bias_squared$source <- "bias_squared"
 
 df_variance <- data.frame(
   flexibility = flexibility,
-  error = c(0.01, 0.25, 1)
+  error = c(0.01, 0.15, 1)
 )
 df_variance$source <- "variance"
 
