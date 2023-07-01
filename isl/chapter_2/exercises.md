@@ -60,7 +60,7 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
 
 ### Question 3
 
-[see here](#Conceptual)
+[see here](#conceptual)
 
     flexibility <- c(2, 15, 25)
 
