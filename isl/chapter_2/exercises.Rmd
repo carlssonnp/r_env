@@ -4,8 +4,9 @@ date: 2023-07-01
 output: html_document
 ---
 
-```{r}
+```{r, echo = FALSE}
 library(knitr)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 # Table of Contents
@@ -64,7 +65,7 @@ This is a regression problem, as %change is a continuous variable. We are most i
 
 ### Question 3
 
-```{r error_source_graph, warnings = FALSE, messages = FALSE}
+```{r error_source_graph, }
 
 df_bias_squared <- data.frame(
   flexibility = c(2, 15, 25),
