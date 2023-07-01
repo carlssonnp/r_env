@@ -1,13 +1,13 @@
 -   [Conceptual](#conceptual)
     -   [Question 1](#question-1)
+        -   [a](#a)
+        -   [b](#b)
+        -   [c](#c)
+        -   [d](#d)
+    -   [Question 2](#question-2)
         -   [a.](#a.)
         -   [b.](#b.)
         -   [c.](#c.)
-        -   [d.](#d.)
-    -   [Question 2](#question-2)
-        -   [a.](#a.-1)
-        -   [b.](#b.-1)
-        -   [c.](#c.-1)
     -   [Question 3](#question-3)
 -   [Applied](#applied)
 
@@ -15,7 +15,7 @@
 
 ## Question 1
 
-### a.
+### a
 
 We would expect a flexible statistical learning method to perform better
 than an inflexible method because the risk of overfitting is minimal
@@ -23,7 +23,7 @@ with a large sample size and small number of predictors. A flexible
 method will thus have lower bias and negligibly higher variance than an
 inflexible method.
 
-### b.
+### b
 
 We would expect an inflexible statistical learning method to perform
 better than a flexible method because the flexible method will be at
@@ -31,7 +31,7 @@ risk of overfitting with a small sample size and a large number of
 predictors. The inflexible method will have higher bias but much lower
 variance than the flexible method in this case.
 
-### c.
+### c
 
 We would expect the flexible method to perform better here because it
 will be able to learn the non-linear relationship between the predictors
@@ -39,7 +39,7 @@ and the response variable better than the inflexible method. The
 flexible method will thus have much lower bias than the inflexible
 method, offsetting the increase in variance.
 
-### d.
+### d
 
 We would expect the inflexible method to perform better here because the
 flexible method will likely model the large error terms rather than the
