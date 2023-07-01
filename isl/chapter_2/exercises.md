@@ -1,4 +1,4 @@
--   [Conceptual](#hwks)
+-   [Conceptual](#conceptual)
     -   [Question 1](#question-1)
     -   [Question 2](#question-2)
     -   [Question 3](#question-3)
@@ -60,7 +60,7 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
 
 ### Question 3
 
-[see here](#hwks)
+[see here](#conceptual)
 
     flexibility <- c(2, 15, 25)
 

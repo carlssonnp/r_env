@@ -16,7 +16,7 @@ library(knitr)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
-## Conceptual{#hwks}
+## Conceptual
 
 ### Question 1
 
@@ -59,7 +59,7 @@ This is a regression problem, as %change is a continuous variable. We are most i
 
 ### Question 3
 
-[see here](#hwks)
+[see here](#conceptual)
 ```{r error_source_graph, }
 
 flexibility <- c(2, 15, 25)
