@@ -64,7 +64,7 @@ This is a regression problem, as %change is a continuous variable. We are most i
 
 ### Question 3
 
-```{r error_source_graph}
+```{r error_source_graph, warnings = FALSE, messages = FALSE}
 
 df_bias_squared <- data.frame(
   flexibility = c(2, 15, 25),
