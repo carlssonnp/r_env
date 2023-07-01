@@ -16,4 +16,13 @@ Imports:
     GGally,
     car,
     gridExtra,
-    ggfortify
+    ggfortify,
+    leaps,
+    pls,
+    gam,
+    akima,
+    tree,
+    randomForest,
+    gbm,
+    e1071,
+    ROCR

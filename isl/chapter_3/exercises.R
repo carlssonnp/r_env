@@ -907,3 +907,17 @@ png(paste0(image_path, "/diagnostic_plot_lm_poly_exercise_15.png"))
 par(mfrow = c(2,2))
 plot(lm_poly)
 dev.off()
+
+n <- 10000
+reps <- 100
+x <- rnorm(n)
+res <- c()
+for (i in seq(reps)) {
+  y <- x + runif(n, -100, 100)
+  res[i] <- coef(summary(lm(y ~ x)))["x", "Estimate"]
+}
+
+
+df <- data.frame(coefficient = res)
+
+ggplot(df) + geom_histogram(aes(x=coefficient), bins=15)

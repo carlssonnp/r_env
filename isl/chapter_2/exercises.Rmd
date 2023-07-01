@@ -1,0 +1,59 @@
+---
+title: "ISLR Chapter 2 Exercises"
+date: 2023-07-01
+output: html_document
+---
+
+# Table of Contents
+1. [Question 1](#Question 1)
+2. [Question 2](#Question 2)
+3. [Question 3](#Question 3)
+4. [Question 4](#Question 4)
+5. [Question 5](#Question 5)
+6. [Question 6](#Question 6)
+7. [Question 7](#Question 7)
+8. [Question 8](#Question 8)
+9. [Question 9](#Question 9)
+10. [Question 10](#Question 10)
+
+
+## Conceptual
+
+### Question 1
+
+#### a.
+We would expect a flexible statistical learning method to perform better than
+an inflexible method because the risk of overfitting is minimal with a large sample
+size and small number of predictors. A flexible method will thus have lower bias
+and negligibly higher variance than an inflexible method.
+
+### b.
+We would expect an inflexible statistical learning method to perform better than a
+flexible method because the flexible method will be at risk of overfitting with a small sample size
+and a large number of predictors. The inflexible method will have higher bias but much lower variance
+than the flexible method in this case.
+
+### c.
+We would expect the flexible method
+
+
+## Applied
+
+Load libraries.
+```{r load_libraries}
+library(magrittr)
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(tidyr)
+library(MASS)
+library(ISLR)
+```
+
+Summarize data.
+```{r summarize_data}
+df_college <- College
+
+summary(df_college)
+
+```
