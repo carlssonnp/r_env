@@ -1,16 +1,21 @@
-# ISLR Chapter 2 Exercises
+-   [Conceptual](#conceptual)
+    -   [Question 1](#question-1)
+        -   [a.](#a.)
+        -   [b.](#b.)
+        -   [c.](#c.)
+        -   [d.](#d.)
+    -   [Question 2](#question-2)
+        -   [a.](#a.-1)
+        -   [b.](#b.-1)
+        -   [c.](#c.-1)
+    -   [Question 3](#question-3)
+-   [Applied](#applied)
 
--   [1 Conceptual](#conceptual)
-    -   [1.1 Question 1](#question-1)
-    -   [1.2 Question 2](#question-2)
-    -   [1.3 Question 3](#question-3)
--   [2 Applied](#applied)
+# Conceptual
 
-# 1 Conceptual
+## Question 1
 
-## 1.1 Question 1
-
-### 1.1.1 a.
+### a.
 
 We would expect a flexible statistical learning method to perform better
 than an inflexible method because the risk of overfitting is minimal
@@ -18,7 +23,7 @@ with a large sample size and small number of predictors. A flexible
 method will thus have lower bias and negligibly higher variance than an
 inflexible method.
 
-### 1.1.2 b.
+### b.
 
 We would expect an inflexible statistical learning method to perform
 better than a flexible method because the flexible method will be at
@@ -26,7 +31,7 @@ risk of overfitting with a small sample size and a large number of
 predictors. The inflexible method will have higher bias but much lower
 variance than the flexible method in this case.
 
-### 1.1.3 c.
+### c.
 
 We would expect the flexible method to perform better here because it
 will be able to learn the non-linear relationship between the predictors
@@ -34,7 +39,7 @@ and the response variable better than the inflexible method. The
 flexible method will thus have much lower bias than the inflexible
 method, offsetting the increase in variance.
 
-### 1.1.4 d.
+### d.
 
 We would expect the inflexible method to perform better here because the
 flexible method will likely model the large error terms rather than the
@@ -42,25 +47,25 @@ underlying true relationship between the response variable and the
 predictors. The flexible method will have very high variance in this
 case.
 
-## 1.2 Question 2
+## Question 2
 
-### 1.2.1 a.
+### a.
 
 This is a regression problem, as CEO salary is a continuous variable. We
 are most interested in inference here. `n` = 500, `p` = 3.
 
-### 1.2.2 b.
+### b.
 
 This is a classification problem, as the response variable is binary. We
 are most interested in prediction. `n` = 20, `p` = 13.
 
-### 1.2.3 c.
+### c.
 
 This is a regression problem, as %change is a continuous variable. We
 are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
 3.
 
-## 1.3 Question 3
+## Question 3
 
     flexibility <- c(2, 15, 25)
 
@@ -147,7 +152,7 @@ Below we describe why each error source has the shape it does.
     observations will be able to perfectly predict the training dataset,
     provided the features are all linearly independent.
 
-# 2 Applied
+# Applied
 
 Load libraries.
 
