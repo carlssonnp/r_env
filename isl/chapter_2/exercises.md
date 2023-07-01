@@ -7,7 +7,6 @@ output: html_document
 
 ```r
 library(knitr)
-opts_chunk$set(fig.path="isl/chapter_2/figures/")
 ```
 
 # Table of Contents
@@ -94,7 +93,7 @@ df_irreducible_error$source <- "irreducible_error"
 
 df_total_error <- data.frame(
   flexibility = c(2, 15, 25),
-  error = df_bias_squared$error + df_variance_squared$error + irreducible_error
+  error = df_bias_squared$error + df_variance$error + df_irreducible_error$error[[1]]
 )
 df_total_error$source <- "test_error"
 
@@ -363,7 +362,7 @@ ggplot2::ggplot(df_errors) +
 ## -Inf
 ```
 
-![plot of chunk error_source_graph](isl/chapter_2/figures/error_source_graph-1.png)
+![plot of chunk error_source_graph](figure/error_source_graph-1.png)
 
 ## Applied
 

@@ -1,7 +1,5 @@
 source("renv/activate.R")
 
-library(crayon)
-
-options(prompt = crayon::green("R> "))
+options(prompt = "R> ")
 
 source("~/.Rprofile")
