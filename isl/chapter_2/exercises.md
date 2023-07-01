@@ -4,6 +4,12 @@ date: 2023-07-01
 output: html_document
 ---
 
+
+```r
+library(knitr)
+opts_chunk$set(fig.path="isl/chapter_2/figures/")
+```
+
 # Table of Contents
 1. [Question 1](#Question-1)
 2. [Question 2](#Question-2)
@@ -357,7 +363,7 @@ ggplot2::ggplot(df_errors) +
 ## -Inf
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png)
+![plot of chunk error_source_graph](isl/chapter_2/figures/error_source_graph-1.png)
 
 ## Applied
 
