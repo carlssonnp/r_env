@@ -1,15 +1,8 @@
-# **ISLR Chapter 2 Exercises**
+# ISLR Chapter 2 Exercises
 
 -   [1 Conceptual](#conceptual)
     -   [1.1 Question 1](#question-1)
-        -   [1.1.1 a.](#a.)
-        -   [1.1.2 b.](#b.)
-        -   [1.1.3 c.](#c.)
-        -   [1.1.4 d.](#d.)
     -   [1.2 Question 2](#question-2)
-        -   [1.2.1 a.](#a.-1)
-        -   [1.2.2 b.](#b.-1)
-        -   [1.2.3 c.](#c.-1)
     -   [1.3 Question 3](#question-3)
 -   [2 Applied](#applied)
 

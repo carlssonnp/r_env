@@ -5,9 +5,11 @@ output:
   md_document:
     toc: true
     number_sections: true
+    toc_depth: 2
   html_document:
     toc: true
     number_sections: true
+    toc_depth: 2
 
 ---
 
