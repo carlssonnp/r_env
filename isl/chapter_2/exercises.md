@@ -34,8 +34,330 @@ and a large number of predictors. The inflexible method will have higher bias bu
 than the flexible method in this case.
 
 ### c.
-We would expect the flexible method
+We would expect the flexible method to perform better here because it will be able to
+learn the non-linear relationship between the predictors and the response variable better than the inflexible method.
+The flexible method will thus have much lower bias than the inflexible method, offsetting the increase in variance.
 
+
+### d.
+We would expect the inflexible method to perform better here because the flexible method
+will likely model the large error terms rather than the underlying true relationship between the response
+variable and the predictors. The flexible method will have very high variance in this case.
+
+### Question 2
+
+#### a.
+This is a regression problem, as CEO salary is a continuous variable. We are most
+interested in inference here. `n` = 500, `p` = 3.
+
+#### b.
+This is a classification problem, as the response variable is binary. We are most interested in prediction.
+`n` = 20, `p` = 13.
+
+#### c.
+This is a regression problem, as %change is a continuous variable. We are most interested in prediction.
+`n` = 52 (52 weeks in a year), `p` = 3.
+
+### Question 3
+
+
+```r
+df_bias_squared <- data.frame(
+  flexibility = c(2, 15, 25),
+  error = c(1, 0.008, 0.005)
+)
+df_bias_squared$source <- "bias_squared"
+
+df_variance <- data.frame(
+  flexibility = c(2, 15, 25),
+  error = c(0.01, 0.25, 1)
+)
+df_variance$source <- "variance"
+
+df_training_error <- data.frame(
+  flexibility = c(2, 10, 25),
+  error = df_bias_squared$error * 0.8
+)
+df_training_error$source <- "training_error"
+
+df_irreducible_error <- data.frame(
+  flexibility = c(0, 25),
+  error = c(0.5, 0.5)
+)
+df_irreducible_error$source <- "irreducible_error"
+
+df_total_error <- data.frame(
+  flexibility = c(2, 15, 25),
+  error = df_bias_squared$error + df_variance_squared$error + irreducible_error
+)
+df_total_error$source <- "test_error"
+
+df_errors <- dplyr::bind_rows(df_bias_squared, df_variance, df_training_error, df_total_error)
+
+ggplot2::ggplot(df_errors) +
+  ggplot2::geom_smooth(ggplot2::aes(x = flexibility, y = error, color = source)) +
+  ggplot2::geom_line(data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source))
+```
+
+```
+## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : span too small.  fewer data values than degrees of freedom.
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : pseudoinverse used at 1.885
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : neighborhood radius 13.115
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : reciprocal condition number 0
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : There are other near singularities as well. 102.31
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : span too small.  fewer
+## data values than degrees of freedom.
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : pseudoinverse used at
+## 1.885
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : neighborhood radius
+## 13.115
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : reciprocal condition
+## number 0
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : There are other near
+## singularities as well. 102.31
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : span too small.  fewer data values than degrees of freedom.
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : pseudoinverse used at 1.885
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : neighborhood radius 13.115
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : reciprocal condition number 0
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : There are other near singularities as well. 102.31
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : span too small.  fewer
+## data values than degrees of freedom.
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : pseudoinverse used at
+## 1.885
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : neighborhood radius
+## 13.115
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : reciprocal condition
+## number 0
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : There are other near
+## singularities as well. 102.31
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : span too small.  fewer data values than degrees of freedom.
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : pseudoinverse used at 1.885
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : neighborhood radius 8.115
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : reciprocal condition number 0
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : There are other near singularities as well. 228.46
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : span too small.  fewer
+## data values than degrees of freedom.
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : pseudoinverse used at
+## 1.885
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : neighborhood radius
+## 8.115
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : reciprocal condition
+## number 0
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : There are other near
+## singularities as well. 228.46
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : span too small.  fewer data values than degrees of freedom.
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : pseudoinverse used at 1.885
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : neighborhood radius 13.115
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : reciprocal condition number 0
+```
+
+```
+## Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,
+## : There are other near singularities as well. 102.31
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : span too small.  fewer
+## data values than degrees of freedom.
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : pseudoinverse used at
+## 1.885
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : neighborhood radius
+## 13.115
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : reciprocal condition
+## number 0
+```
+
+```
+## Warning in predLoess(object$y, object$x, newx = if (is.null(newdata)) object$x
+## else if (is.data.frame(newdata))
+## as.matrix(model.frame(delete.response(terms(object)), : There are other near
+## singularities as well. 102.31
+```
+
+```
+## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
+## -Inf
+
+## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
+## -Inf
+
+## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
+## -Inf
+
+## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
+## -Inf
+```
+
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png)
 
 ## Applied
 
