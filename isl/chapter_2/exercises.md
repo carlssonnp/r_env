@@ -107,7 +107,7 @@ ggplot2::ggplot(df_errors) +
   ggplot2::labs(x = "Flexibility", y = "Error", title = "Error versus Flexibility for different error sources")
 ```
 
-<!-- ![plot of chunk error_source_graph](figure/error_source_graph-1.png) -->
+![plot of chunk error_source_graph](figure/error_source_graph-1.png)
 
 ## Applied
 
