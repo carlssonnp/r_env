@@ -110,6 +110,22 @@ ggplot2::ggplot(df_errors) +
   ggplot2::labs(x = "Flexibility", y = "Error", title = "Error versus Flexibility for different error sources")
 ```
 
+Below we describe why each error source has the shape it does.
+
+1. Variance - very non-flexible models, i.e. a model that predicts the mean of the training dataset,
+would have close to zero variance; it would barely change from training dataset to training dataset.
+In contrast, a very flexible model would change significantly when trained across different datasets, as the flexibility
+would result in the model modeling the random error terms of each observation, which change from dataset to dataset. Thus the variance of the error term increases as the flexibility increases. At higher levels of flexibility the slope of the variance curve is higher than at lower levels of flexibility, reflecting the fact that increasing the flexibility when the flexibility
+is already quite low doesn't increase the variance that much, but increasing the flexibility when the flexibility is already quite high increases the variance significantly.
+
+2. Bias squared - very non-flexible models, like the mean prediction model mentioned above, have extremely high bias because they are unable to capture the relationship between the predictors and the response variable. As the flexibility increases, the more flexible models are quickly able to capture these relationships, so the error from this term levels off relatively quickly.
+
+3. Irreducible error - this is constant, as it is unaffected by the model chosen and hence is independent of any property of the model, such as flexibility.
+
+4. Test error - this is the sum of the previous three error sources. It achieves a minimum at an intermediate level of flexibility, which is dependent on the dataset that is being modeled. It has a characteristic U shape, reflecting the leveling off of bias at higher levels of flexibility and the rapid increase in variance.
+
+5. Training error - this decreases monotonically as flexibility increases because more complex models approach the point of being able to predict the training response perfectly. For example, a linear model with number of predictors equal to number of observations will be able to perfectly predict the training dataset, provided the features are all linearly independent. 
+
 ## Applied
 
 Load libraries.
