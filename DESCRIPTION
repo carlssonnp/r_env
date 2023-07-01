@@ -25,4 +25,5 @@ Imports:
     randomForest,
     gbm,
     e1071,
-    ROCR
+    ROCR,
+    rmarkdown
