@@ -1,6 +1,3 @@
-# ISLR Chapter 2 Exercises
-## 2023-07-01
-
 -   [Conceptual](#conceptual)
     -   [Question 1](#question-1)
     -   [Question 2](#question-2)
@@ -104,8 +101,13 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
 
     ggplot2::ggplot(df_errors) +
       ggplot2::geom_smooth(ggplot2::aes(x = flexibility, y = error, color = source)) +
-      ggplot2::geom_line(data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source)) +
-      ggplot2::labs(x = "Flexibility", y = "Error", title = "Error versus Flexibility for different error sources")
+      ggplot2::geom_line(
+        data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source)
+      ) +
+      ggplot2::labs(
+        x = "Flexibility", y = "Error",
+        title = "Error versus Flexibility for different error sources"
+      )
 
 ![](exercises_files/figure-markdown_strict/error_source_graph-1.png)
 
