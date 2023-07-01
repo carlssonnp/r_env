@@ -5,21 +5,21 @@ output: html_document
 ---
 
 # Table of Contents
-1. [Question 1](#Question 1)
-2. [Question 2](#Question 2)
-3. [Question 3](#Question 3)
-4. [Question 4](#Question 4)
-5. [Question 5](#Question 5)
-6. [Question 6](#Question 6)
-7. [Question 7](#Question 7)
-8. [Question 8](#Question 8)
-9. [Question 9](#Question 9)
-10. [Question 10](#Question 10)
+1. [Question 1](#Question_1)
+2. [Question 2](#Question_2)
+3. [Question 3](#Question_3)
+4. [Question 4](#Question_4)
+5. [Question 5](#Question_5)
+6. [Question 6](#Question_6)
+7. [Question 7](#Question_7)
+8. [Question 8](#Question_8)
+9. [Question 9](#Question_9)
+10. [Question 10](#Question_10)
 
 
 ## Conceptual
 
-### Question 1
+### Question_1
 
 #### a.
 We would expect a flexible statistical learning method to perform better than
