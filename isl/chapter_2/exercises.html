@@ -356,46 +356,41 @@ display: none;
 
 <div id="TOC">
 <ul>
-<li><a href="#conceptual" id="toc-conceptual">Conceptual</a>
-<ul>
-<li><a href="#question-1" id="toc-question-1">Question 1</a></li>
-<li><a href="#question-2" id="toc-question-2">Question 2</a></li>
-<li><a href="#question-3" id="toc-question-3">Question 3</a></li>
-</ul></li>
+<li><a href="#conceptual" id="toc-conceptual">Conceptual</a></li>
 <li><a href="#applied" id="toc-applied">Applied</a></li>
 </ul>
 </div>
 
-<div id="conceptual" class="section level1">
-<h1>Conceptual</h1>
-<div id="question-1" class="section level2">
-<h2>Question 1</h2>
-<div id="a" class="section level3">
-<h3>a</h3>
+<div id="conceptual" class="section level2">
+<h2>Conceptual</h2>
+<div id="question-1" class="section level3">
+<h3>Question 1</h3>
+<div id="a" class="section level4">
+<h4>a</h4>
 <p>We would expect a flexible statistical learning method to perform
 better than an inflexible method because the risk of overfitting is
 minimal with a large sample size and small number of predictors. A
 flexible method will thus have lower bias and negligibly higher variance
 than an inflexible method.</p>
 </div>
-<div id="b" class="section level3">
-<h3>b</h3>
+<div id="b" class="section level4">
+<h4>b</h4>
 <p>We would expect an inflexible statistical learning method to perform
 better than a flexible method because the flexible method will be at
 risk of overfitting with a small sample size and a large number of
 predictors. The inflexible method will have higher bias but much lower
 variance than the flexible method in this case.</p>
 </div>
-<div id="c" class="section level3">
-<h3>c</h3>
+<div id="c" class="section level4">
+<h4>c</h4>
 <p>We would expect the flexible method to perform better here because it
 will be able to learn the non-linear relationship between the predictors
 and the response variable better than the inflexible method. The
 flexible method will thus have much lower bias than the inflexible
 method, offsetting the increase in variance.</p>
 </div>
-<div id="d" class="section level3">
-<h3>d</h3>
+<div id="d" class="section level4">
+<h4>d</h4>
 <p>We would expect the inflexible method to perform better here because
 the flexible method will likely model the large error terms rather than
 the underlying true relationship between the response variable and the
@@ -403,29 +398,29 @@ predictors. The flexible method will have very high variance in this
 case.</p>
 </div>
 </div>
-<div id="question-2" class="section level2">
-<h2>Question 2</h2>
-<div id="a-1" class="section level3">
-<h3>a</h3>
+<div id="question-2" class="section level3">
+<h3>Question 2</h3>
+<div id="a-1" class="section level4">
+<h4>a</h4>
 <p>This is a regression problem, as CEO salary is a continuous variable.
 We are most interested in inference here. <code>n</code> = 500,
 <code>p</code> = 3.</p>
 </div>
-<div id="b-1" class="section level3">
-<h3>b</h3>
+<div id="b-1" class="section level4">
+<h4>b</h4>
 <p>This is a classification problem, as the response variable is binary.
 We are most interested in prediction. <code>n</code> = 20,
 <code>p</code> = 13.</p>
 </div>
-<div id="c-1" class="section level3">
-<h3>c</h3>
+<div id="c-1" class="section level4">
+<h4>c</h4>
 <p>This is a regression problem, as %change is a continuous variable. We
 are most interested in prediction. <code>n</code> = 52 (52 weeks in a
 year), <code>p</code> = 3.</p>
 </div>
 </div>
-<div id="question-3" class="section level2">
-<h2>Question 3</h2>
+<div id="question-3" class="section level3">
+<h3>Question 3</h3>
 <pre class="r"><code>flexibility &lt;- c(2, 15, 25)
 
 df_bias_squared &lt;- data.frame(
