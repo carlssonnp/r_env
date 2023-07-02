@@ -2,7 +2,25 @@
     -   [Question 1](#question-1)
     -   [Question 2](#question-2)
     -   [Question 3](#question-3)
+    -   [Question 4](#question-4)
+    -   [Question 5](#question-5)
+    -   [Question 6](#question-6)
+    -   [Question 7](#question-7)
 -   [Applied](#applied)
+    -   [Question 8](#question-8)
+    -   [Question 9](#question-9)
+
+Load libraries.
+
+    library(magrittr)
+    library(dplyr)
+    library(GGally)
+    library(ggplot2)
+    library(tidyr)
+    library(MASS)
+    library(ISLR)
+    library(tools)
+    library(gridExtra)
 
 ## Conceptual
 
@@ -60,7 +78,10 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
 
 ### Question 3
 
-[see here](#conceptual)
+    # Converts labels to title case
+    label_convert <- function(x) {
+      tools::toTitleCase(gsub("_", " ", x))
+    }
 
     flexibility <- c(2, 15, 25)
 
@@ -68,48 +89,54 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
       flexibility = flexibility,
       error = c(1, 0.008, 0.005)
     )
-    df_bias_squared$source <- "bias_squared"
+    df_bias_squared$label <- "bias_squared"
 
     df_variance <- data.frame(
       flexibility = flexibility,
       error = c(0.01, 0.15, 1)
     )
-    df_variance$source <- "variance"
+    df_variance$label <- "variance"
 
     df_training_error <- data.frame(
       flexibility = flexibility,
       error = df_bias_squared$error * 0.8
     )
-    df_training_error$source <- "training_error"
+    df_training_error$label <- "training_error"
 
     irreducible_error <- 0.5
     df_irreducible_error <- data.frame(
       flexibility = c(0, 25),
       error = rep(irreducible_error, 2)
     )
-    df_irreducible_error$source <- "irreducible_error"
+    df_irreducible_error$label <- "irreducible_error"
 
     df_total_error <- data.frame(
       flexibility = flexibility,
       error = df_bias_squared$error + df_variance$error + df_irreducible_error$error[[1]]
     )
-    df_total_error$source <- "test_error"
+    df_total_error$label <- "test_error"
 
     df_errors <- dplyr::bind_rows(
       df_bias_squared, df_variance, df_training_error, df_total_error
     )
 
     ggplot2::ggplot(df_errors) +
-      ggplot2::geom_smooth(ggplot2::aes(x = flexibility, y = error, color = source)) +
+      ggplot2::geom_smooth(
+        ggplot2::aes(
+          x = flexibility, y = error, color = label_convert(label)
+        )
+      ) +
       ggplot2::geom_line(
-        data = df_irreducible_error, ggplot2::aes(x = flexibility, y = error, color = source)
+        data = df_irreducible_error,
+        ggplot2::aes(x = flexibility, y = error, color = label_convert(label))
       ) +
       ggplot2::labs(
         x = "Flexibility", y = "Error",
-        title = "Error versus Flexibility for different error sources"
+        title = "Error versus Flexibility for different error sources",
+        color = "Error source"
       )
 
-![](exercises_files/figure-markdown_strict/error_source_graph-1.png)
+![](exercises_files/figure-markdown_strict/error_graph-1.png)
 
 Below we describe why each error source has the shape it does.
 
@@ -152,21 +179,165 @@ Below we describe why each error source has the shape it does.
     observations will be able to perfectly predict the training dataset,
     provided the features are all linearly independent.
 
-# Applied
+### Question 4
 
-Load libraries.
+#### a
 
-    library(magrittr)
-    library(dplyr)
-    library(GGally)
-    library(ggplot2)
-    library(tidyr)
-    library(MASS)
-    library(ISLR)
+##### i
 
-Summarize data.
+A credit card company might wish to predict the probability of a
+customer defaulting on their card. The response would be whether or not
+the customer defaulted on their card, and the predictors would be
+variables indicating the customer’s previous credit history.
+
+##### ii
+
+A technology company might want to build a product that recognizes
+handwritten characters. The response would be which character the
+writing sample represents and the predictors would be the grayscale
+value at each pixel of the sample.
+
+##### iii
+
+A company that sends out letter offers for their products might try to
+determine which potential customers have the highest probability of
+responding to their offer. The response would be whether or not a
+customer responded, and the predictors could be the customer’s previous
+purchasing habits.
+
+#### b
+
+##### i
+
+A credit card company might want to predict the income of a customer
+applying for a credit card, so as to compare it the customer’s reported
+income and identify potential discrepancies. The response would be the
+customer’s income, and the predictors could be variables indicating the
+customer’s previous credit history.
+
+##### ii
+
+A supermarket chain might be interested in seeing how many customers
+will buy a given product per day. The response would be the number of
+purchases per day, and the predictors would be details about the
+product, such as type of product, price, and placement in the store, as
+well as day of the week.
+
+##### iii
+
+An agriculture company might be interested in predicting the yield of a
+given crop. The response would be the yield of the crop, and the
+predictors might be the genetic makeup of the crop, in addition to other
+external factors like location of the crop and exposure to sunlight.
+
+#### c
+
+##### i
+
+A marketing company might wish to segment customers based on previous
+purchase habits, in order to tailor a marketing campaign to better serve
+the needs of a given customer segment.
+
+##### ii
+
+A genomics lab might want to cluster tissue samples based on the genetic
+makeup of each sample, in order to identify samples that are similar to
+one another.
+
+##### iii
+
+A search engine company might want to cluster search results based on
+the content of each result, to provide more relevant results when a user
+searches for specific term.
+
+### Question 5
+
+A very flexible approach will likely have lower bias than a less
+flexible approach, unless the relationship between the response and the
+predictors is very simple. However, the very flexible approach will have
+higher variance, which may or may not outweigh the decrease in bias
+depending on the dataset at hand. [Question 1](#question-1) highlights
+some cases when one approach might be preferred over the other; these
+cases are repeated below.
+
+A few cases when a very flexible approach might be preferred:
+
+1.  The number of predictors is small, and the number of observations is
+    large.
+2.  The relationship between predictors and the response is very
+    complex.
+
+A few cases when a less flexible approach might be preferred:
+
+1.  The number of predictors is large, and the number of observations is
+    small.
+2.  The relationship between predictors and the response is very simple.
+3.  Interpretability is important: some less flexible approaches are
+    easy to explain, such as generalized linear models.
+
+### Question 6
+
+A parametric approach assumes a specific form of the function that we
+are estimating, prior to fitting the model with the data. Generalized
+linear models are good examples of this. A non-parametric approach does
+not assume a specific form of the function. A parametric approach is
+generally less flexible and hence will have lower variance, at the
+expense of higher bias (unless the chosen parametric form closely
+mirrors the actual relationship between response and predictors). A
+parametric approach is also easier to interpret in most cases. A
+non-parametric approach will generally be more flexible and thus have
+lower bias, but higher variance.
+
+### Question 7
+
+#### a
+
+    mat <- matrix(c(0, 2, 0 , 0, -1, 1, 3, 0, 1, 1, 0, 1, 0, 0, 3, 2, 1, 1), 6, 3)
+    y <- c("red", "red", "red", "green", "green", "red")
+
+    distances <- apply(mat, 1, function(x) sum(x ^ 2))
+    print(paste("The distances are:", paste(distances, collapse = ", ") , sep = " "))
+
+    ## [1] "The distances are: 9, 4, 10, 5, 2, 3"
+
+#### b
+
+    k_1_pred <- y[which.min(distances)]
+
+    print(paste0("Prediction with one nearest neighbors is ", k_1_pred, "."))
+
+    ## [1] "Prediction with one nearest neighbors is green."
+
+#### c
+
+    k_3_preds <- y[order(distances)[1:3]]
+    k_3_preds_table <- table(k_3_preds)
+    k_3_pred <- names(k_3_preds_table)[which.max(k_3_preds_table)]
+
+    print(paste0("Prediction with three nearest neighbors is ", k_3_pred, "."))
+
+    ## [1] "Prediction with three nearest neighbors is red."
+
+#### d
+
+If the Bayes decision boundary is highly non-linear, we would expect the
+best value of K to be small, as this would allow for highly non-linear
+decision boundaries. For example, with k = 1, the decision boundaries
+would be surfaces around each data point.
+
+## Applied
+
+### Question 8
+
+#### a
+
+  
 
     df_college <- College
+
+#### b
+
+  
 
     summary(df_college)
 
@@ -205,3 +376,224 @@ Summarize data.
     ##  Mean   : 65.46  
     ##  3rd Qu.: 78.00  
     ##  Max.   :118.00
+
+#### c
+
+##### i
+
+  
+
+    summary(df_college)
+
+    ##  Private        Apps           Accept          Enroll       Top10perc    
+    ##  No :212   Min.   :   81   Min.   :   72   Min.   :  35   Min.   : 1.00  
+    ##  Yes:565   1st Qu.:  776   1st Qu.:  604   1st Qu.: 242   1st Qu.:15.00  
+    ##            Median : 1558   Median : 1110   Median : 434   Median :23.00  
+    ##            Mean   : 3002   Mean   : 2019   Mean   : 780   Mean   :27.56  
+    ##            3rd Qu.: 3624   3rd Qu.: 2424   3rd Qu.: 902   3rd Qu.:35.00  
+    ##            Max.   :48094   Max.   :26330   Max.   :6392   Max.   :96.00  
+    ##    Top25perc      F.Undergrad     P.Undergrad         Outstate    
+    ##  Min.   :  9.0   Min.   :  139   Min.   :    1.0   Min.   : 2340  
+    ##  1st Qu.: 41.0   1st Qu.:  992   1st Qu.:   95.0   1st Qu.: 7320  
+    ##  Median : 54.0   Median : 1707   Median :  353.0   Median : 9990  
+    ##  Mean   : 55.8   Mean   : 3700   Mean   :  855.3   Mean   :10441  
+    ##  3rd Qu.: 69.0   3rd Qu.: 4005   3rd Qu.:  967.0   3rd Qu.:12925  
+    ##  Max.   :100.0   Max.   :31643   Max.   :21836.0   Max.   :21700  
+    ##    Room.Board       Books           Personal         PhD        
+    ##  Min.   :1780   Min.   :  96.0   Min.   : 250   Min.   :  8.00  
+    ##  1st Qu.:3597   1st Qu.: 470.0   1st Qu.: 850   1st Qu.: 62.00  
+    ##  Median :4200   Median : 500.0   Median :1200   Median : 75.00  
+    ##  Mean   :4358   Mean   : 549.4   Mean   :1341   Mean   : 72.66  
+    ##  3rd Qu.:5050   3rd Qu.: 600.0   3rd Qu.:1700   3rd Qu.: 85.00  
+    ##  Max.   :8124   Max.   :2340.0   Max.   :6800   Max.   :103.00  
+    ##     Terminal       S.F.Ratio      perc.alumni        Expend     
+    ##  Min.   : 24.0   Min.   : 2.50   Min.   : 0.00   Min.   : 3186  
+    ##  1st Qu.: 71.0   1st Qu.:11.50   1st Qu.:13.00   1st Qu.: 6751  
+    ##  Median : 82.0   Median :13.60   Median :21.00   Median : 8377  
+    ##  Mean   : 79.7   Mean   :14.09   Mean   :22.74   Mean   : 9660  
+    ##  3rd Qu.: 92.0   3rd Qu.:16.50   3rd Qu.:31.00   3rd Qu.:10830  
+    ##  Max.   :100.0   Max.   :39.80   Max.   :64.00   Max.   :56233  
+    ##    Grad.Rate     
+    ##  Min.   : 10.00  
+    ##  1st Qu.: 53.00  
+    ##  Median : 65.00  
+    ##  Mean   : 65.46  
+    ##  3rd Qu.: 78.00  
+    ##  Max.   :118.00
+
+##### ii
+
+I chose 5 columns as the plot takes too long to render
+
+    GGally::ggpairs(data = df_college, columns = 5:1)
+
+![](exercises_files/figure-markdown_strict/question_8_c_ii-1.png)
+
+##### iii
+
+  
+
+    ggplot2::ggplot(data = df_college) +
+      ggplot2::geom_boxplot(ggplot2::aes(x = Private, y = Outstate))
+
+![](exercises_files/figure-markdown_strict/question_8_c_iii-1.png)
+
+##### iv
+
+  
+
+    df_college$Elite <- ifelse(df_college$Top10perc >50, "Yes", "No")
+
+    ggplot2::ggplot(data = df_college) +
+      ggplot2::geom_boxplot(ggplot2::aes(x = Elite, y = Outstate))
+
+![](exercises_files/figure-markdown_strict/question_8_c_iv-1.png)
+
+##### v
+
+  
+
+    vars <- c("Books", "Personal")
+    bins <- c(5, 10, 20, 30)
+
+    plots <- vector("list", length = length(vars) * length(bins))
+    counter <- 1
+    for (bin in bins) {
+      for (var in vars) {
+        plots[[counter]] <- ggplot2::ggplot(data = df_college) +
+          ggplot2::geom_histogram(ggplot2::aes(.data[[var]]), bins = bin) +
+          ggplot2::labs(x = paste(var, "(bins = ", bin, ")"))
+        counter <- counter + 1
+      }
+    }
+
+    do.call(gridExtra::grid.arrange, c(plots, nrow = 4, ncol = 2))
+
+![](exercises_files/figure-markdown_strict/question_8_c_v-1.png)
+
+##### vi
+
+From some of the previous questions, we see that private schools
+generally have higher outstate tuition than public schools, and elite
+schools tend to have higher outstate tuition as well.
+
+### Question 9
+
+#### a
+
+  
+
+    df_auto <- Auto
+
+    print(lapply(df_auto, class))
+
+    ## $mpg
+    ## [1] "numeric"
+    ## 
+    ## $cylinders
+    ## [1] "numeric"
+    ## 
+    ## $displacement
+    ## [1] "numeric"
+    ## 
+    ## $horsepower
+    ## [1] "numeric"
+    ## 
+    ## $weight
+    ## [1] "numeric"
+    ## 
+    ## $acceleration
+    ## [1] "numeric"
+    ## 
+    ## $year
+    ## [1] "numeric"
+    ## 
+    ## $origin
+    ## [1] "numeric"
+    ## 
+    ## $name
+    ## [1] "factor"
+
+#### b
+
+  
+
+#### c
+
+  
+
+    summarize_numeric <- function(df) {
+
+      summary_functions <- list(mean = mean, sd = sd, min = min, max = max)
+
+      df <- df %>%
+        dplyr::summarize(., dplyr::across(tidyselect::where(is.numeric), summary_functions))
+
+      first_summary_function <- paste0("_", names(summary_functions)[[1]])
+      vars <- colnames(df)
+      vars <- vars[grepl(first_summary_function, vars)]
+      vars <- gsub(first_summary_function, "", vars)
+
+      df_cleaned <- data.frame(variable = vars)
+
+      for (summary_function in names(summary_functions)) {
+        df_sub <- df[, grepl(paste0(".*", summary_function, ".*"), colnames(df))]
+        df_cleaned[[summary_function]] <- unname(unlist(df_sub))
+      }
+
+      df_cleaned
+
+    }
+
+
+    df_summary <- summarize_numeric(df_auto)
+
+    print(df_summary)
+
+    ##       variable        mean          sd  min    max
+    ## 1          mpg   23.445918   7.8050075    9   46.6
+    ## 2    cylinders    5.471939   1.7057832    3    8.0
+    ## 3 displacement  194.411990 104.6440039   68  455.0
+    ## 4   horsepower  104.469388  38.4911599   46  230.0
+    ## 5       weight 2977.584184 849.4025600 1613 5140.0
+    ## 6 acceleration   15.541327   2.7588641    8   24.8
+    ## 7         year   75.979592   3.6837365   70   82.0
+    ## 8       origin    1.576531   0.8055182    1    3.0
+
+#### d
+
+  
+
+    df_sub_auto <- df_auto[-(10:85), ]
+
+    df_sub_summary <- summarize_numeric(df_sub_auto)
+
+    print(df_sub_summary)
+
+    ##       variable        mean         sd    min    max
+    ## 1          mpg   24.404430   7.867283   11.0   46.6
+    ## 2    cylinders    5.373418   1.654179    3.0    8.0
+    ## 3 displacement  187.240506  99.678367   68.0  455.0
+    ## 4   horsepower  100.721519  35.708853   46.0  230.0
+    ## 5       weight 2935.971519 811.300208 1649.0 4997.0
+    ## 6 acceleration   15.726899   2.693721    8.5   24.8
+    ## 7         year   77.145570   3.106217   70.0   82.0
+    ## 8       origin    1.601266   0.819910    1.0    3.0
+
+#### e
+
+  
+
+    columns_to_plot <- setdiff(colnames(df_auto), "name")
+    GGally::ggpairs(df_auto, columns = columns_to_plot)
+
+![](exercises_files/figure-markdown_strict/question_9_e-1.png)
+
+#### f
+
+Based on the correlations in the above plots, there are substantial
+linear relationships between `mpg` and all of the other variables.
+Looking at the scatter plots, though, we see some non-linear
+relationships, so a model that has the ability to extract a non-linear
+relationship might perform best. `weight` in particular has the highest
+absolute value of correlation.
