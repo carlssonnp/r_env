@@ -1,0 +1,292 @@
+---
+title: ISLR Chapter 3 Exercises
+date: 2023-07-01
+linkcolor: blue
+toccolor: blue
+output:
+  md_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 3
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, echo = FALSE}
+library(knitr)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r load_libraries}
+library(MASS)
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(gridExtra)
+library(ISLR)
+library(ggfortify)
+```
+
+## Conceptual
+
+### Question 1
+The null hypothesis for rows 2-4 is that there is no linear relationship between the media type in the leftmost column and
+sales. The null hypothesis for the first row (the intercept) is that the mean response is 0 when all media spending is 0.
+In terms of coefficients, for each row *i*, indexed starting at 0, the null hypothesis is that $\beta_i = 0$.
+
+### Question 2
+The KNN regression method uses the average response of the `k` neighboring points closest to
+a test point as the prediction for that point. The KNN classification method first computes the
+conditional probability that a test point is of each class by computing the fraction of
+the `k` neighboring points that belong to that class, and then assigns the test point to the
+class with the maximum conditional probability.
+
+### Question 3
+
+#### a
+Answer iii) is correct. The main effect of gender increases female salary relative to
+male salary by `35,000`, but the interaction effect decreases female salary by `10,000`
+per point of `GPA`. So if a female had a `GPA` of `4.0`, on average they would have a salary that
+differs from a male by $35,000 + -10,000 \cdot 4 = -5,000$, provided that the female and male both had the same `IQ` and `GPA`. Since this is a negative number, so we conclude that on average males earn more provided that the GPA is high enough.
+
+
+#### b
+$50 + 20 \cdot 4 + 0.07 \cdot 110 + 35 + 0.01 \cdot 4 \cdot 110 - 10 \cdot 4 \cdot 1 = 137.1$, in thousands of dollars.
+
+#### c
+This is false. The t value and the corresponding p-value for the interaction term needs to be examined, rather
+than the coefficient value itself. In general, the coefficient value will depend on the scaling of the variable
+rather than the significance of the term.  
+
+
+### Question 4
+
+#### a
+The training `RSS` will never increase as more variables are added to the model. This includes
+transformations of existing variables. So we would expect the cubic regression to have a lower training
+`RSS`.
+
+#### b
+Given that the true relationship is linear, the cubic model will not result in a reduction of bias
+but will increase variance. So we would expect the linear regression to have a lower test error.
+
+#### c
+See part a) above.
+
+
+#### d
+Given that we don't know how far from linear the true relationship is, it is unclear how much bias will be reduced
+by using the cubic regression. So we can't tell which method would have lower test `RSS`.
+
+
+### Question 5
+
+$\frac{\displaystyle\sum_{i=1}^{n} x_iy_i}{\displaystyle\sum_{j=1}^{n} x_j^2} = \displaystyle\sum_{i=1}^{n} \frac{x_i}{\displaystyle\sum_{j=1}^{n} x_j^2} y_i$.
+
+So $\alpha_i = \displaystyle\frac{x_i}{\displaystyle\sum_{j=1}^{n} x_j^2}$
+
+### Question 6
+$\hat{y} = \beta_0 + \beta_1x = \bar{y} - \beta_1\bar{x} + \beta_1x = \bar{y} + \beta_1(x - \bar{x})$
+
+This equality holds when $\hat{y} = \bar{y}$ and $x = \bar{x}$.
+
+
+### Question 7
+$\hat{\beta_1} = \frac{\displaystyle\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\displaystyle\sum_{i=1}^{n}(x_i - \bar{x})^2} = \frac{Cov(X,Y)}{Var(X)} = \frac{Cor(X,Y)SD(Y)}{SD(X)}$
+
+Now $R^2 = \frac{\displaystyle\sum_{i=1}^{n}(\hat{y_i} - \bar{y})^2}{\displaystyle\sum_{i=1}^{n}(y_i - \bar{y})^2} =
+\displaystyle\frac{\displaystyle\sum_{i=1}^{n}(\bar{y} + \beta_1(x_i - \bar{x}) - \bar{y})^2}{SD(Y)^2} =
+\displaystyle\frac{\displaystyle\sum_{i=1}^{n}(\beta_1(x_i - \bar{x}))^2}{SD(Y)^2} = \beta_1^2\displaystyle\frac{\displaystyle\sum_{i=1}^{n}(x_i - \bar{x})^2}{SD(Y)^2} = \\
+\frac{Cor(X,Y)^2SD(Y)^2}{SD(X)^2} \cdot \frac{SD(X)^2}{SD(Y)^2} = Cor(X,Y)^2$
+
+
+## Applied
+
+### Question 8
+
+#### a
+\
+```{r question_8_a}
+df_auto <- Auto
+simple_linear_regression_model <- lm(mpg ~ horsepower, data = df_auto)
+
+print(summary(simple_linear_regression_model))
+
+```
+
+##### i
+Since this is simple linear regression, the t-statistic and the F-statistic are testing the same thing:
+is there a relationship between the predictor and the response? Since the p-value associated with these statistics
+is tiny, we reject the null hypothesis that there is no linear association between `mpg` and `horsepower`.
+
+##### ii
+This model has an $R^2$ of 0.61, indicating that 61% of the variance in the training data
+is explained by the model. The estimate of the standard error is `4.9` units, relative to the mean
+value of `23.4`, giving a relative error of roughly 20%.
+
+##### iii
+Looking at the sign of the coefficient, the relationship is negative.
+
+##### iv
+\
+```{r question_8_a_iv}
+
+dfs_interval <- lapply(
+  c("confidence", "prediction"),
+  function(interval, model) {
+    df <- data.frame(predict(model, data.frame(horsepower = 98), interval = interval))
+    df$interval <- interval
+
+    df
+  },
+  model = simple_linear_regression_model
+)
+
+df_interval <- dplyr::bind_rows(dfs_interval)
+rownames(df_interval) <- NULL
+
+print(df_interval)
+
+```
+
+
+##### v
+\
+```{r question_8_v}
+
+coefs <- coef(simple_linear_regression_model)
+df_auto %>%
+  ggplot2::ggplot(.) +
+  ggplot2::geom_point(ggplot2::aes(x = horsepower, y = mpg)) +
+  ggplot2::geom_abline(slope = coefs[[2]], intercept = coefs[[1]])
+
+```
+
+
+##### vi
+\
+```{r question_8_vi}
+ggplot2::autoplot(simple_linear_regression_model)
+```
+
+
+From this plot we notice a few things:
+
+1. Evidence of non-linearity of data - The residuals vs fitted value plot shows evidence of
+a non-linear relationship, as there is a noticeable pattern to the residuals. You can also see this
+in the normal QQ plot.
+
+2. No evidence of correlation of error terms - Since each measurement is independent of the other
+measurements in this data set, this is not a surprise.
+
+3. Evidence of non-constant variance of error terms - The spread of the residuals is greater at higher values of the fitted
+values, which is related to point 1 above. You can also see this in the normal QQ plot.
+
+4. Leverage - Looking at the standardized residuals vs leverage plot, there are a number of points with high leverage, but most of them have small residuals, i.e. are not outliers. The exceptions are observations `117` and two points which lie right on top of each other, all of which have high leverage and could also be considered borderline outliers (the combination of which gives a high value of Cook's distance).
+
+5. Outliers - There are a few points with standardized residuals with magnitude greater than 2, but most of them have low leverage
+and thus do not affect the slope of the linear regression line greatly. As mentioned above, points `191` and `117` are exceptions.
+
+
+### Question 9
+
+#### a
+\
+```{r question_9_a}
+GGally::ggpairs(df_auto %>% dplyr::select(., -name))
+```
+
+#### b
+The correlations can be seen in the above plot.
+
+
+#### c
+\
+```{r question_9_c}
+multiple_linear_regression_model <- lm(mpg ~ . - name, data = df_auto)
+
+print(summary(multiple_linear_regression_model))
+
+```
+
+##### i
+The tiny p-value associated with the F-statistic indicates that not all of the coefficients
+are equal to 0, i.e. there is a relationship between at least one of the predictors and `mpg`.
+
+##### ii
+Looking at the p-values, `displacement`, `weight`, `year`, and `origin` all appear to have a
+statistically significant relationship with `mpg`.
+
+##### iii
+The coefficient for the `year` variable is positive, indicating that `mpg` has been increasing over time.
+
+
+#### d
+\
+```{r question_9_d}
+ggplot2::autoplot(multiple_linear_regression_model)
+```
+
+1. Evidence of non-linearity of data - The residuals vs fitted value plot shows evidence of
+a non-linear relationship, as in the case of the earlier simple linear regression. The non-linearity
+is not as severe as in the single variable case, however.
+
+2. No evidence of correlation of error terms - Same as single variable case.
+
+3. Evidence of non-constant variance of error terms - The spread of the residuals is greater at higher values of the fitted
+values, which is related to point 1 above. You can also see this in the normal QQ plot.
+
+4. Leverage - Looking at the standardized residuals vs leverage plot, there is one point (point 14) with very high leverage and also a relatively large residual.
+
+5. Outliers -there are a few points with standardized residuals with magnitude greater than 2, but most of them have low leverage
+and thus do not affect the slope of the linear regression line greatly. Point 14 is a borderline outlier and has high leverage.
+
+
+#### e
+\
+```{r question_9_e}
+interaction_model <- lm(mpg ~ . -name + acceleration:weight + displacement:horsepower, data = df_auto)
+
+print(summary(interaction_model))
+```
+The `displacement-horsepower` interaction term is significant.  
+
+#### f
+\
+```{r question_9_f}
+polynomial_model <- lm(mpg ~ poly(horsepower, 2), data = df_auto)
+
+print(summary(polynomial_model))
+
+sqrt_model <- lm(mpg ~ I(sqrt(horsepower)), data = df_auto)
+
+print(summary(sqrt_model))
+```
+
+In the polynomial_model, both the linear and quadratic term are statistically significant. The overall fit of
+the model is superior to the simple linear model, at least using adjusted R-squared. The square root term is also significant
+in the square root model, although this model does not perform as well as the quadratic model using adjusted R-squared.
+
+
+### Question 10
+
+#### a
+\
+```{r question_10_a}
+df_carseats <- Carseats
+model <- lm(Sales ~ Price + Urban + US, data = df_carseats)
+print(summary(model))
+```
+
+#### b
+
+1. Price - for a 1 unit change in price, sales go down on average by -0.05 units.
+2. Urban - sales in urban populations are on average lower by -0.02 units, although this effect is non-significant.
+3. US - sales in the US are on average 1.2 units higher than sales outside the US.
+
+
+#### c
+$\hat{y} = 13.043469 -0.054459 \cdot Price -0.021916 \cdot \mathbf 1_{Urban==Yes} + 1.200573 \cdot \mathbf 1_{US==Yes}$

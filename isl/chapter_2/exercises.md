@@ -9,6 +9,7 @@
 -   [Applied](#applied)
     -   [Question 8](#question-8)
     -   [Question 9](#question-9)
+    -   [Question 10](#question-10)
 
 Load libraries.
 
@@ -84,59 +85,43 @@ are most interested in prediction. `n` = 52 (52 weeks in a year), `p` =
     }
 
     flexibility <- c(2, 15, 25)
-
-    df_bias_squared <- data.frame(
-      flexibility = flexibility,
-      error = c(1, 0.008, 0.005)
-    )
-    df_bias_squared$label <- "bias_squared"
-
-    df_variance <- data.frame(
-      flexibility = flexibility,
-      error = c(0.01, 0.15, 1)
-    )
-    df_variance$label <- "variance"
-
-    df_training_error <- data.frame(
-      flexibility = flexibility,
-      error = df_bias_squared$error * 0.8
-    )
-    df_training_error$label <- "training_error"
-
     irreducible_error <- 0.5
-    df_irreducible_error <- data.frame(
-      flexibility = c(0, 25),
-      error = rep(irreducible_error, 2)
-    )
-    df_irreducible_error$label <- "irreducible_error"
+    training_error_proportion <- 0.8
 
-    df_total_error <- data.frame(
-      flexibility = flexibility,
-      error = df_bias_squared$error + df_variance$error + df_irreducible_error$error[[1]]
+    label_error_mapping <- list(
+      bias_squared = c(1, 0.008, 0.005),
+      variance = c(0.01, 0.15, 1),
+      irreducible_error = rep(irreducible_error, 3)
     )
-    df_total_error$label <- "test_error"
+    label_error_mapping$training_error <- label_error_mapping$bias_squared *
+      training_error_proportion
+    label_error_mapping$test_error <- label_error_mapping$bias_squared +
+      label_error_mapping$variance + label_error_mapping$irreducible_error
 
-    df_errors <- dplyr::bind_rows(
-      df_bias_squared, df_variance, df_training_error, df_total_error
+    dfs <- Map(
+      function(nm, error, flexibility) {
+        data.frame(label = nm, flexibility = flexibility, error = error)
+      },
+      names(label_error_mapping),
+      label_error_mapping,
+      flexibility = list(flexibility)
     )
 
-    ggplot2::ggplot(df_errors) +
+    df <- dplyr::bind_rows(dfs)
+
+    ggplot2::ggplot(df) +
       ggplot2::geom_smooth(
         ggplot2::aes(
           x = flexibility, y = error, color = label_convert(label)
         )
       ) +
-      ggplot2::geom_line(
-        data = df_irreducible_error,
-        ggplot2::aes(x = flexibility, y = error, color = label_convert(label))
-      ) +
       ggplot2::labs(
         x = "Flexibility", y = "Error",
-        title = "Error versus Flexibility for different error sources",
-        color = "Error source"
+        title = "Error versus flexibility for different error sources",
+        color = "Error Source"
       )
 
-![](exercises_files/figure-markdown_strict/error_graph-1.png)
+![](exercises_files/figure-markdown_strict/question_3-1.png)
 
 Below we describe why each error source has the shape it does.
 
@@ -597,3 +582,181 @@ Looking at the scatter plots, though, we see some non-linear
 relationships, so a model that has the ability to extract a non-linear
 relationship might perform best. `weight` in particular has the highest
 absolute value of correlation.
+
+### Question 10
+
+#### a
+
+  
+
+    df_boston <- MASS::Boston
+    print(paste("Number of rows in dataset:", nrow(df_boston), sep = " "))
+
+    ## [1] "Number of rows in dataset: 506"
+
+    print(paste("Number of columns in dataset:", ncol(df_boston), sep = " "))
+
+    ## [1] "Number of columns in dataset: 14"
+
+Each row represents a town around Boston, and each column represents a
+measurement on that town.
+
+#### b
+
+  
+
+    GGally::ggpairs(df_boston, 1:7)
+
+![](exercises_files/figure-markdown_strict/question_10_b-1.png)
+
+#### c
+
+`crim` and `nox` are positively correlated, as are `crim` and `indus`.
+
+#### d
+
+  
+
+    vars <- c("crim", "ptratio", "tax")
+    n <- 5
+    for (var in vars) {
+      highest_rates <- df_boston$crim %>%
+        sort(.) %>%
+        tail(., 5)
+      print(paste(n, "highest values for variable", var, "are", paste(highest_rates, collapse = ", ")))
+    }
+
+    ## [1] "5 highest values for variable crim are 45.7461, 51.1358, 67.9208, 73.5341, 88.9762"
+    ## [1] "5 highest values for variable ptratio are 45.7461, 51.1358, 67.9208, 73.5341, 88.9762"
+    ## [1] "5 highest values for variable tax are 45.7461, 51.1358, 67.9208, 73.5341, 88.9762"
+
+    df_summary <- summarize_numeric(df_boston)
+
+    print(df_summary)
+
+    ##    variable         mean          sd       min      max
+    ## 1      crim   3.61352356   8.6015451   0.00632  88.9762
+    ## 2        zn  11.36363636  23.3224530   0.00000 100.0000
+    ## 3     indus  11.13677866   6.8603529   0.46000  27.7400
+    ## 4      chas   0.06916996   0.2539940   0.00000   1.0000
+    ## 5       nox   0.55469506   0.1158777   0.38500   0.8710
+    ## 6        rm   6.28463439   0.7026171   3.56100   8.7800
+    ## 7       age  68.57490119  28.1488614   2.90000 100.0000
+    ## 8       dis   3.79504269   2.1057101   1.12960  12.1265
+    ## 9       rad   9.54940711   8.7072594   1.00000  24.0000
+    ## 10      tax 408.23715415 168.5371161 187.00000 711.0000
+    ## 11  ptratio  18.45553360   2.1649455  12.60000  22.0000
+    ## 12    black 356.67403162  91.2948644   0.32000 396.9000
+    ## 13    lstat  12.65306324   7.1410615   1.73000  37.9700
+    ## 14     medv  22.53280632   9.1971041   5.00000  50.0000
+
+#### e
+
+  
+
+    n_charles_river <- sum(df_boston$chas)
+
+    print(paste("Number of towns bounding the Charles river:", n_charles_river))
+
+    ## [1] "Number of towns bounding the Charles river: 35"
+
+#### f
+
+  
+
+    med_ptratio <- median(df_boston$ptratio)
+
+    print(paste("Median pupil-teacher ratio:", med_ptratio))
+
+    ## [1] "Median pupil-teacher ratio: 19.05"
+
+#### g
+
+  
+
+    min_idx <- which.min(df_boston$medv)
+    print(paste("ID of town with lowest median value of owner occupied homes:", min_idx))
+
+    ## [1] "ID of town with lowest median value of owner occupied homes: 399"
+
+    min_town <- df_boston[min_idx, ]
+
+    quantiles <- Map(
+      function(nm, val, df) {
+        mean(df[[nm]] <= val)
+      },
+      names(min_town),
+      min_town,
+      list(df_boston)
+    )
+
+    print(quantiles)
+
+    ## $crim
+    ## [1] 0.9881423
+    ## 
+    ## $zn
+    ## [1] 0.7351779
+    ## 
+    ## $indus
+    ## [1] 0.8873518
+    ## 
+    ## $chas
+    ## [1] 0.93083
+    ## 
+    ## $nox
+    ## [1] 0.8577075
+    ## 
+    ## $rm
+    ## [1] 0.0770751
+    ## 
+    ## $age
+    ## [1] 1
+    ## 
+    ## $dis
+    ## [1] 0.05731225
+    ## 
+    ## $rad
+    ## [1] 1
+    ## 
+    ## $tax
+    ## [1] 0.9901186
+    ## 
+    ## $ptratio
+    ## [1] 0.8893281
+    ## 
+    ## $black
+    ## [1] 1
+    ## 
+    ## $lstat
+    ## [1] 0.9782609
+    ## 
+    ## $medv
+    ## [1] 0.003952569
+
+We see that the town with the lowest median value of owner occupied
+homes has extreme values for the other predictors as well.
+
+#### h
+
+  
+
+    vals <- c(7, 8)
+    for (val in vals) {
+      sum_greater <- sum(df_boston$rm > val)
+      if (identical(val, 8)) {
+        df_large_houses <- df_boston %>%
+          dplyr::filter(., rm > 8)
+      }
+      print(paste("Number of towns that average more than", val, "rooms per dwelling:", sum_greater))
+    }
+
+    ## [1] "Number of towns that average more than 7 rooms per dwelling: 64"
+    ## [1] "Number of towns that average more than 8 rooms per dwelling: 13"
+
+    medv_large_houses <- mean(df_large_houses$medv)
+    quantile_medv <- mean(df_boston$medv <= medv_large_houses)
+
+    print(paste("Quantile of mean medv for large house towns:", quantile_medv))
+
+    ## [1] "Quantile of mean medv for large house towns: 0.954545454545455"

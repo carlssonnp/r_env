@@ -16,7 +16,7 @@ output:
 
 ---
 
-```{r, echo = FALSE}
+```{r setup, echo = FALSE}
 library(knitr)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
@@ -77,7 +77,7 @@ This is a regression problem, as %change is a continuous variable. We are most i
 `n` = 52 (52 weeks in a year), `p` = 3.
 
 ### Question 3
-```{r error_graph}
+```{r question_3}
 
 # Converts labels to title case
 label_convert <- function(x) {
@@ -85,56 +85,40 @@ label_convert <- function(x) {
 }
 
 flexibility <- c(2, 15, 25)
-
-df_bias_squared <- data.frame(
-  flexibility = flexibility,
-  error = c(1, 0.008, 0.005)
-)
-df_bias_squared$label <- "bias_squared"
-
-df_variance <- data.frame(
-  flexibility = flexibility,
-  error = c(0.01, 0.15, 1)
-)
-df_variance$label <- "variance"
-
-df_training_error <- data.frame(
-  flexibility = flexibility,
-  error = df_bias_squared$error * 0.8
-)
-df_training_error$label <- "training_error"
-
 irreducible_error <- 0.5
-df_irreducible_error <- data.frame(
-  flexibility = c(0, 25),
-  error = rep(irreducible_error, 2)
-)
-df_irreducible_error$label <- "irreducible_error"
+training_error_proportion <- 0.8
 
-df_total_error <- data.frame(
-  flexibility = flexibility,
-  error = df_bias_squared$error + df_variance$error + df_irreducible_error$error[[1]]
+label_error_mapping <- list(
+  bias_squared = c(1, 0.008, 0.005),
+  variance = c(0.01, 0.15, 1),
+  irreducible_error = rep(irreducible_error, 3)
 )
-df_total_error$label <- "test_error"
+label_error_mapping$training_error <- label_error_mapping$bias_squared *
+  training_error_proportion
+label_error_mapping$test_error <- label_error_mapping$bias_squared +
+  label_error_mapping$variance + label_error_mapping$irreducible_error
 
-df_errors <- dplyr::bind_rows(
-  df_bias_squared, df_variance, df_training_error, df_total_error
+dfs <- Map(
+  function(nm, error, flexibility) {
+    data.frame(label = nm, flexibility = flexibility, error = error)
+  },
+  names(label_error_mapping),
+  label_error_mapping,
+  flexibility = list(flexibility)
 )
 
-ggplot2::ggplot(df_errors) +
+df <- dplyr::bind_rows(dfs)
+
+ggplot2::ggplot(df) +
   ggplot2::geom_smooth(
     ggplot2::aes(
       x = flexibility, y = error, color = label_convert(label)
     )
   ) +
-  ggplot2::geom_line(
-    data = df_irreducible_error,
-    ggplot2::aes(x = flexibility, y = error, color = label_convert(label))
-  ) +
   ggplot2::labs(
     x = "Flexibility", y = "Error",
-    title = "Error versus Flexibility for different error sources",
-    color = "Error source"
+    title = "Error versus flexibility for different error sources",
+    color = "Error Source"
   )
 ```
 
@@ -399,7 +383,6 @@ summarize_numeric <- function(df) {
 df_summary <- summarize_numeric(df_auto)
 
 print(df_summary)
-
 ```
 
 #### d
@@ -418,7 +401,6 @@ print(df_sub_summary)
 ```{r question_9_e}
 columns_to_plot <- setdiff(colnames(df_auto), "name")
 GGally::ggpairs(df_auto, columns = columns_to_plot)
-
 ```
 
 
@@ -426,3 +408,108 @@ GGally::ggpairs(df_auto, columns = columns_to_plot)
 Based on the correlations in the above plots, there are substantial linear relationships between `mpg`
 and all of the other variables. Looking at the scatter plots, though, we see some non-linear relationships, so
 a model that has the ability to extract a non-linear relationship might perform best. `weight` in particular has the highest absolute value of correlation.
+
+
+### Question 10
+
+#### a
+\
+```{r question_10_a}
+df_boston <- MASS::Boston
+print(paste("Number of rows in dataset:", nrow(df_boston), sep = " "))
+print(paste("Number of columns in dataset:", ncol(df_boston), sep = " "))
+```
+
+Each row represents a town around Boston, and each column represents a measurement on
+that town.
+
+#### b
+\
+```{r question_10_b}
+GGally::ggpairs(df_boston, 1:7)
+```
+
+
+#### c
+
+`crim` and `nox` are positively correlated, as are `crim` and `indus`.
+
+#### d
+\
+```{r question_10_d}
+
+vars <- c("crim", "ptratio", "tax")
+n <- 5
+for (var in vars) {
+  highest_rates <- df_boston$crim %>%
+    sort(.) %>%
+    tail(., 5)
+  print(paste(n, "highest values for variable", var, "are", paste(highest_rates, collapse = ", ")))
+}
+
+df_summary <- summarize_numeric(df_boston)
+
+print(df_summary)
+
+```
+
+#### e
+\
+```{r question_10_e}
+n_charles_river <- sum(df_boston$chas)
+
+print(paste("Number of towns bounding the Charles river:", n_charles_river))
+```
+
+#### f
+\
+```{r question_10_f}
+med_ptratio <- median(df_boston$ptratio)
+
+print(paste("Median pupil-teacher ratio:", med_ptratio))
+```
+
+#### g
+\
+```{r question_10_g}
+min_idx <- which.min(df_boston$medv)
+print(paste("ID of town with lowest median value of owner occupied homes:", min_idx))
+
+min_town <- df_boston[min_idx, ]
+
+quantiles <- Map(
+  function(nm, val, df) {
+    mean(df[[nm]] <= val)
+  },
+  names(min_town),
+  min_town,
+  list(df_boston)
+)
+
+print(quantiles)
+```
+
+We see that the town with the lowest median value of owner occupied homes has
+extreme values for the other predictors as well.
+
+
+#### h
+\
+```{r question_10_h}
+
+vals <- c(7, 8)
+for (val in vals) {
+  sum_greater <- sum(df_boston$rm > val)
+  if (identical(val, 8)) {
+    df_large_houses <- df_boston %>%
+      dplyr::filter(., rm > 8)
+  }
+  print(paste("Number of towns that average more than", val, "rooms per dwelling:", sum_greater))
+}
+
+medv_large_houses <- mean(df_large_houses$medv)
+quantile_medv <- mean(df_boston$medv <= medv_large_houses)
+
+print(paste("Quantile of mean medv for large house towns:", quantile_medv))
+
+```
