@@ -290,3 +290,351 @@ print(summary(model))
 
 #### c
 $\hat{y} = 13.043469 -0.054459 \cdot Price -0.021916 \cdot \mathbf 1_{Urban==Yes} + 1.200573 \cdot \mathbf 1_{US==Yes}$
+
+
+#### d
+\
+```{r question_10_d}
+
+model <- lm(Sales ~ Price + US, data = df_carseats)
+
+print(summary(model))
+```
+
+This model, created by removing the insignificant `Urban` variable from the first model,
+has the same $R^2$ up to 4 decimal places, higher adjusted R squared, and lower residual standard error, compared to the first model. We thus would favor this model, as it likely would perform better out of sample and is simpler.
+
+#### e
+\
+```{r question_10_e}
+
+print(confint(model))
+```
+
+
+#### f
+\
+```{r question 10_f}
+ggplot2::autoplot(model)
+```
+
+The residual vs fitted plot looks good; no evidence of homoscedasticity or non-linear relationships. The QQ plot indicates that the residuals are approximately normally distributed. In terms of leverage, there is one very high leverage point but it does not have a large residual so its influence on the least squares plane is minimal. There are a few points with studentized residuals close to 3 in absolute values, indicating outliers, but they have low leverage so are unlikeley to influence the least squares plane.
+
+
+### Question 11
+
+#### a
+\
+```{r question_11_a}
+set.seed(1)
+df <- data.frame(x = rnorm(100))
+df$y <- 2 * df$x + rnorm(100)
+
+model <- lm(y ~ 0 + x, data = df)
+
+print(summary(model))
+```
+
+The estimate is close to the true value of $\beta$.
+
+
+#### b, c
+\
+```{r question_11_b}
+model <- lm(x ~ 0 + y, data = df)
+
+print(summary(model))
+
+```
+
+The same t-value is obtained in both cases.
+
+#### d
+For notational convenience, let $num = \displaystyle\sum_{i=1}^{n} y_ix_i$ and
+$denum = \displaystyle\sum_{i=1}^{n} x_i^2$
+
+Then
+
+$t = \frac{\hat{\beta}}{SE(\hat{\beta})} =
+\frac{num}{denum} /
+\frac{\displaystyle\sum_{i=1}^{n} (y_i - x_i\hat{\beta})^2}{(n - 1)denum} =
+\frac{num}{denum} /
+\sqrt{\frac{\displaystyle\sum_{i=1}^{n} (y_i - x_i\frac{num}{denum})^2}{(n - 1)denum}} =
+\frac{num}{denum} /
+\sqrt{\frac{\displaystyle\sum_{i=1}^{n} y_i^2 - 2y_ix_i\frac{num}{denum} + x_i^2\frac{num^2}{denum^2}}{(n - 1)denum}} =
+\sqrt{(n - 1)}num /
+\sqrt{\displaystyle\sum_{i=1}^{n} (y_i^2denum - 2y_ix_inum) + num^2} =
+\sqrt{(n - 1)} \displaystyle\sum_{i=1}^{n} y_ix_i/
+\sqrt{\displaystyle\sum_{i=1}^{n} y_i^2\displaystyle\sum_{i=1}^{n} x_i^2 - (\displaystyle\sum_{i=1}^{n} y_ix_i )^2}$
+
+#### e
+$x_i$ and $y_i$ are symmetric in the above equation, so the result will be the same whether we
+regress y on x or x on y.
+
+
+#### f
+\
+```{r question_11_f}
+y_on_x <- lm(y ~ x, data = df)
+x_on_y <- lm(x ~ y, data = df)
+
+print(summary(y_on_x)$coefficients[2, "t value"])
+print(summary(x_on_y)$coefficients[2, "t value"])
+
+```
+
+We see that the t values are the same in this case as well.
+
+
+### Question 12
+
+#### a
+When $\displaystyle\sum_{i=1}^{n} y_i^2 = \displaystyle\sum_{i=1}^{n} x_i^2$, the coefficient estimates will be the same.
+
+
+#### b, c
+\
+```{r question_12_b_c}
+set.seed(1)
+
+df <- data.frame(x = rnorm(100))
+df$y1 <- df$x + 1
+df$y2 <- sample(df$x)
+
+base_vars <- c("x", "y")
+for (index in seq(2)) {
+  for (pair in list(base_vars, rev(base_vars))) {
+    pair[pair == "y"] <- paste0("y", index)
+    formula_string <- paste(pair[[1]], "~", pair[[2]], "+ 0")
+    model <- lm(as.formula(formula_string), data = df)
+    print(paste0("Regression for ", pair[[1]], " on ", pair[[2]], ": "))
+    print(coef(model)[[1]])
+  }
+}
+```
+
+
+We see that when the magnitude of the `x`, `y` vectors are the same, the coefficient
+estimates are the same whether we regress `y` on `x` or `x` on `y`.
+
+
+### Question 13
+We will answer all questions in one code block here.
+\
+```{r question_13}
+
+generate_data <- function(sd_eps) {
+  set.seed(1)
+
+  df <- data.frame(x = rnorm(100), eps = rnorm(100, sd = sd_eps))
+  df$y <- -1 + 0.5*df$x + df$eps
+
+  df
+}
+
+fit_model_and_plot <- function(df, sd_eps) {
+  model <- lm(y ~ x, data = df)
+  model_poly <- lm(y ~ poly(x, 2), data = df)
+  quadratic_p_value <- summary(model_poly)$coefficients[3, 4]
+
+  print(paste("Confidence interval for estimates using eps =", sd_eps, ":"))
+  print(confint(model))
+  print(paste("p-value for quadratic term using eps =", sd_eps, ":", quadratic_p_value, sep = " "))
+
+  estimated_values <- coef(model)
+  true_values <- c(-1, 0.5)
+
+  df_coefficients <- data.frame(
+    intercept = c(estimated_values[[1]], true_values[[1]]),
+    slope = c(estimated_values[[2]], true_values[[2]]),
+    label = c("Estimated Regression Line", "Population Regression Line")
+  )
+
+  ggplot2::ggplot(df) +
+    ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_abline(ggplot2::aes(intercept = intercept, slope = slope, color = label), data = df_coefficients) +
+    ggplot2::labs(title = paste("Regression lines and data points using eps == ", sd_eps, sep = " ")) +
+    ggplot2::lims(y = c(-4, 2))
+}
+
+generate_data_fit_model_plot <- function(sd_eps) {
+  df <- generate_data(sd_eps)
+  fit_model_and_plot(df, sd_eps)
+}
+
+plots <- lapply(c(0.01, 0.25, 1), generate_data_fit_model_plot)
+
+for (plot in plots) {
+  print(plot)
+}
+
+```
+
+The length of `y` is 100. $\beta_0$ is -1, and $\beta_1$ is 0.5. This does not change as we vary the
+error term. As the error term variance increases, the estimated regression line diverges from the true regression line and the confidence intervals around the coefficients becomes larger.
+The polynomial term is never significant regardless of the value of the error term variance.
+
+
+
+### Question 14
+
+#### a
+\
+```{r question_14_a}
+set.seed(1)
+
+df <- data.frame(x1 = runif(100))
+df$x2 <- 0.5  * df$x1 + rnorm(100) / 10
+df$y <- 2 + 2 * df$x1 + 0.3 * df$x2 + rnorm(100)
+
+```
+
+
+The linear model is $y = 2 + 2x_1 + 0.3x_2 + \epsilon$. The population regression coefficients
+are $\beta_0 = 2, \beta_1 = 2, \beta_2 = 0.3$
+
+
+#### b
+\
+```{r question_14_b}
+GGally::ggpairs(df, columns = c("x1", "x2"))
+```
+
+From the above plots we see the correlation is 0.818.
+
+
+#### c
+\
+```{r question_14_c}
+model <- lm(y ~ ., data = df)
+
+print(summary(model))
+```
+
+We can reject the null hypothesis $H_0 : \beta_1 = 0$, but not the null hypothesis $H_0 : \beta_2 = 0$.
+
+
+#### d
+\
+```{r question_14_d}
+model <- lm(y ~ x1, data = df)
+
+print(summary(model))
+```
+Again, we can reject the null hypothesis $H_0 : \beta_1 = 0$. The p-value is lower in the univariate case.
+
+#### e
+\
+```{r question_14_e}
+model <- lm(y ~ x2, data = df)
+
+print(summary(model))
+```
+This time we can reject the null hypothesis $H_0 : \beta_2 = 0$.
+
+
+#### f
+
+These results do not contradict one another; becuause of the high correlation between
+the two variables, the variance of the estimates when they are both included in the model is quite high.
+In other words, there are many possible pairs of estimates that fit the data about equally well, so we can't be very certain that a given estimate is close to the true population value.
+
+
+#### g
+\
+```{r question 14_g}
+df <- rbind(df, list(x1 = 0.1, x2 = 0.8, y = 6))
+
+model_both <- lm(y ~ ., data = df)
+
+print(summary(model_both))
+
+ggplot2::autoplot(model_both)
+
+model_x1 <- lm(y ~ x1, data = df)
+
+print(summary(model_x1))
+
+ggplot2::autoplot(model_x1)
+
+model_x2 <- lm(y ~ x2, data = df)
+
+print(summary(model_x2))
+
+
+```
+
+The statistically significant term changes from `x1` to `x2` in the model including both terms. This point has high leverage in all 3 models, and is the highest leverage point in models 1 and 3. In model 2, it could be considered an outlier given the high value of the standardized residual.
+
+
+### Question 15
+
+#### a
+\
+```{r question_15_a}
+
+response <- "crim"
+predictors <- setdiff(colnames(df_boston), response)
+
+univariate_coefficients <- rep(0, length(predictors)) %>%
+  setNames(., predictors)
+for (predictor in predictors) {
+  formula_string <- paste(response, "~", predictor, sep = " ")
+  model <- lm(as.formula(formula_string), df_boston)
+  univariate_coefficients[[predictor]] <- coef(model)[predictor]
+  print(summary(model))
+}
+
+```
+
+We see that everything except for `chas` is statistically significant in the univariate models.
+
+#### b
+\
+```{r question_15_b}
+
+model <- lm(crim ~ ., data = df_boston)
+
+print(summary(model))
+
+multivariate_coefficients <- coef(model)[predictors]
+```
+
+`zn`, `dis`, `rad`, `black`, and `medv` are statistically significant.
+
+
+#### c
+\
+```{r question_15_c}
+df_coefficients <- data.frame(
+  univariate = univariate_coefficients,
+  multivariate = multivariate_coefficients,
+  variable = names(univariate_coefficients)
+)
+
+ggplot2::ggplot(df_coefficients) +
+  ggplot2::geom_point(ggplot2::aes(x = multivariate, y = univariate, color = variable))
+
+```
+
+`nox` has a very different value between the univariate and multivariate analyses.
+
+
+
+#### d
+\
+```{r question_15_d}
+
+for (predictor in setdiff(predictors, "chas")) {
+  poly_formula_string <- paste0(response, " ~ poly(", predictor, ", 3)")
+  linear_formula_string <- paste(response, "~", predictor, sep = " ")
+  model_poly <- lm(as.formula(poly_formula_string), data = df_boston)
+  model_linear <- lm(as.formula(linear_formula_string), data = df_boston)
+
+  print(anova(model_linear, model_poly))
+}
+
+```
+
+Looking at the anova tables, we see evidence of non-linear relationships for every variable except for
+`black`. `chas` was excluded because there are only two unique values (dummy variable).

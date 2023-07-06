@@ -125,7 +125,7 @@ train_matrix <- as.matrix(train[, "Lag2"])
 test_matrix <- as.matrix(test[, "Lag2"])
 
 
-predicted_labels <- class::knn(train_matrix, test_matrix, train$Direction, 1)
+predicted_labels <- class::knn(as.matrix(train_matrix), test_matrix, train$Direction, 1)
 
 
 table(predicted_labels, test$Direction, dnn = c("Predicted", "Actual"))
@@ -141,4 +141,4 @@ mean(predicted_labels == test$Direction)
 
 # Terrible
 
-# logistic and lda seem to have similar error rates 
+# logistic and lda seem to have similar error rates
