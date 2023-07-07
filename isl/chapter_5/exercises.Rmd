@@ -296,7 +296,7 @@ for (seed in seeds) {
       function(degree, df, seed) {
         model <- glm(y ~ poly(x, degree), data = df)
         # Only need to print this once, since the results are the same across seeds.
-        if (identical(seed, 1)) {
+        if (identical(seed, 1L)) {
           print(summary(model))
         }
         boot::cv.glm(df, model)$delta[[1]]
@@ -305,6 +305,8 @@ for (seed in seeds) {
       seed = seed
   )
 }
+
+print(results)
 
 ```
 

@@ -92,7 +92,7 @@ the limit above.
 
     print(mean(samples))
 
-    ## [1] 0.63423
+    ## [1] 0.63521
 
 ### Question 3
 
@@ -363,7 +363,8 @@ Note that I am using orthogonal polynomials here.
           function(degree, df, seed) {
             model <- glm(y ~ poly(x, degree), data = df)
             # Only need to print this once, since the results are the same across seeds.
-            if (identical(seed, 1)) {
+            browser()
+            if (identical(seed, 1L)) {
               print(summary(model))
             }
             boot::cv.glm(df, model)$delta[[1]]
@@ -372,6 +373,112 @@ Note that I am using orthogonal polynomials here.
           seed = seed
       )
     }
+
+    ## Called from: FUN(X[[i]], ...)
+    ## 
+    ## Call:
+    ## glm(formula = y ~ poly(x, degree), data = df)
+    ## 
+    ## Coefficients:
+    ##                 Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       -1.550      0.260  -5.961 3.95e-08 ***
+    ## poly(x, degree)    6.189      2.600   2.380   0.0192 *  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 6.760719)
+    ## 
+    ##     Null deviance: 700.85  on 99  degrees of freedom
+    ## Residual deviance: 662.55  on 98  degrees of freedom
+    ## AIC: 478.88
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+    ## 
+    ## Called from: FUN(X[[i]], ...)
+    ## 
+    ## Call:
+    ## glm(formula = y ~ poly(x, degree), data = df)
+    ## 
+    ## Coefficients:
+    ##                  Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       -1.5500     0.0958  -16.18  < 2e-16 ***
+    ## poly(x, degree)1   6.1888     0.9580    6.46 4.18e-09 ***
+    ## poly(x, degree)2 -23.9483     0.9580  -25.00  < 2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.9178258)
+    ## 
+    ##     Null deviance: 700.852  on 99  degrees of freedom
+    ## Residual deviance:  89.029  on 97  degrees of freedom
+    ## AIC: 280.17
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+    ## 
+    ## Called from: FUN(X[[i]], ...)
+    ## 
+    ## Call:
+    ## glm(formula = y ~ poly(x, degree), data = df)
+    ## 
+    ## Coefficients:
+    ##                   Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       -1.55002    0.09626 -16.102  < 2e-16 ***
+    ## poly(x, degree)1   6.18883    0.96263   6.429 4.97e-09 ***
+    ## poly(x, degree)2 -23.94830    0.96263 -24.878  < 2e-16 ***
+    ## poly(x, degree)3   0.26411    0.96263   0.274    0.784    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.9266599)
+    ## 
+    ##     Null deviance: 700.852  on 99  degrees of freedom
+    ## Residual deviance:  88.959  on 96  degrees of freedom
+    ## AIC: 282.09
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+    ## 
+    ## Called from: FUN(X[[i]], ...)
+    ## 
+    ## Call:
+    ## glm(formula = y ~ poly(x, degree), data = df)
+    ## 
+    ## Coefficients:
+    ##                   Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       -1.55002    0.09591 -16.162  < 2e-16 ***
+    ## poly(x, degree)1   6.18883    0.95905   6.453 4.59e-09 ***
+    ## poly(x, degree)2 -23.94830    0.95905 -24.971  < 2e-16 ***
+    ## poly(x, degree)3   0.26411    0.95905   0.275    0.784    
+    ## poly(x, degree)4   1.25710    0.95905   1.311    0.193    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for gaussian family taken to be 0.9197797)
+    ## 
+    ##     Null deviance: 700.852  on 99  degrees of freedom
+    ## Residual deviance:  87.379  on 95  degrees of freedom
+    ## AIC: 282.3
+    ## 
+    ## Number of Fisher Scoring iterations: 2
+    ## 
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+    ## Called from: FUN(X[[i]], ...)
+
+    print(results)
+
+    ## $`1`
+    ## [1] 7.2881616 0.9374236 0.9566218 0.9539049
+    ## 
+    ## $`2`
+    ## [1] 7.2881616 0.9374236 0.9566218 0.9539049
+    ## 
+    ## $`3`
+    ## [1] 7.2881616 0.9374236 0.9566218 0.9539049
 
 The results are the same regardless of seed because there is no
 randomness in LOOCV. The best MSE results from using a polynomial of
