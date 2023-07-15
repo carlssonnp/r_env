@@ -1,0 +1,657 @@
+---
+title: ISLR Chapter 6 Exercises
+date: 2023-07-01
+linkcolor: blue
+toccolor: blue
+output:
+  md_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 3
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, echo = FALSE}
+library(knitr)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r load_libraries}
+library(ISLR)
+library(tools)
+library(ggplot2)
+library(leaps)
+library(glmnet)
+library(pls)
+library(dplyr)
+library(R6)
+library(boot)
+library(splines)
+library(gam)
+```
+
+## Conceptual
+
+### Question 1
+
+#### a
+For $x \le \xi$, just set $a_1 = \beta_0, b_1 = \beta_1, c_1 = \beta_2, d_1 = \beta_3$
+
+#### b
+$f(x) = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x - \xi)^3 =
+\beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x - \xi)(x - \xi)(x - \xi) =
+\beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x^2 - 2x\xi + \xi ^2)(x - \xi) =
+\beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x^3 - 2x^2\xi + x\xi ^2 - x^2\xi + 2x\xi^2 - \xi^3) =
+(\beta_0 - \beta_4\xi^3) + x(\beta_1 + 3\beta_4\xi^2) + x^2(\beta_2 -3\beta_4\xi) + x^3(\beta_3 + \beta_4)$
+
+$a_2 = \beta_0 - \beta_4\xi^3$
+
+$b_2 = \beta_1 + 3\beta_4\xi^2$
+
+$c_2 = \beta_2 -3\beta_4\xi$
+
+$d_2 = \beta_3 + \beta_4$
+
+
+#### c
+$f_1(\xi) = \beta_0 + \beta_1\xi + \beta_2\xi^2 + \beta_3\xi^3$
+
+$f_2(\xi) = (\beta_0 - \beta_4\xi^3) + \xi(\beta_1 + 3\beta_4\xi^2) + \xi^2(\beta_2 -3\beta_4\xi) + \xi^3(\beta_3 + \beta_4) =
+(\beta_0 - \beta_4\xi^3) + \xi\beta_1 + 3\beta_4\xi^3 + \xi^2\beta_2 -3\beta_4\xi^3 + \xi^3\beta_3 + \xi^3\beta_4 =
+\beta_0 + \xi\beta_1 + \xi^2\beta_2 + \xi^3\beta_3$
+
+Thus
+$f_1(\xi) = f_2(\xi)$
+
+#### d
+$f\prime_1(\xi) = beta_1 + 2\beta_2\xi + 3\beta_3\xi^2$
+
+$f\prime_2(\xi) = \beta_1 + 3\beta_4\xi^2 + 2(\beta_2 -3\beta_4\xi)\xi + 3(\beta_3 + \beta_4)\xi^2 =
+\beta_1 + 3\beta_4\xi^2 + 2\beta_2\xi -6\beta_4\xi^2 + 3\beta_3\xi^2 + 3\beta_4\xi^2 =
+\beta_1 + 2\beta_2\xi + 3\beta_3\xi^2$
+
+
+So
+
+$f\prime_1(\xi) = f\prime_2(\xi)$
+
+#### e
+
+$f_1''(\xi) = 2\beta_2+ 6\beta_3\xi$
+
+$f_2''(\xi) = 2\beta_2 -6\beta_4\xi + 6\beta_3\xi + 6\beta_4\xi =
+2\beta_2+ 6\beta_3\xi$
+
+So
+
+$f_1''(\xi) = f_2''(\xi)$
+
+
+
+### Question 2
+
+```{r question_2}
+
+df <- data.frame(x = rnorm(100), eps = rnorm(100))
+df$y <- -2 + 2 * df$x + 2 * 3 * df$x^2 + 4 * df$x^3
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_hline(yintercept = 0) +
+  ggplot2::ggtitle(quote(lambda~`=`~Inf~`,`~m~`=`~0))
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_hline(ggplot2::aes(yintercept = mean(y))) +
+  ggplot2::ggtitle(quote(lambda~`=`~Inf~`,`~m~`=`~1))
+
+
+model <- lm(y ~ x, data = df)
+coefs <- coef(model)
+intercept <- coefs[[1]]
+slope <- coefs[[2]]
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_abline(intercept = intercept, slope = slope) +
+  ggplot2::ggtitle(quote(lambda~`=`~Inf~`,`~m~`=`~2))
+
+model <- lm(y ~ poly(x, 2), data = df)
+preds <- predict(model)
+df$preds <- preds
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_line(aes(x = x, y = preds)) +
+  ggplot2::ggtitle(quote(lambda~`=`~Inf~`,`~m~`=`~3))
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_line(aes(x = x, y = y)) +
+  ggplot2::ggtitle(quote(lambda~`=`~0~`,`~m~`=`~3))
+
+
+```
+
+### Question 3
+
+```{r question_3}
+x <- seq(-2, 2, length = 1000)
+y <- 1 + x -2 * (x - 1)^2 * (x >= 1)
+
+df <- data.frame(x = x, y = y)
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_line(ggplot2::aes(x = x, y = y))
+
+```
+
+### Question 4
+
+```{r question_4}
+x <- seq(-2, 5, length = 1000)
+y <- 1 + (x >= 0 & x <=2) - (x - 1) * (x >= 1 & x <=2) + 3 * ((x - 3) * (x >= 3 & x <= 4) + (x > 4 & x <=5))
+
+df <- data.frame(x = x, y = y)
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_line(ggplot2::aes(x = x, y = y))
+
+```
+
+### Question 5
+
+#### a
+g2 will have smaller training RSS because the model will be more flexible.
+
+#### b
+Impossible to tell; depends on the bias variance tradeoff.
+
+
+#### c
+The model from each curve will be the same in this case; any model that interpolates the points.
+The training RSS will be zero no matter what, and if we choose this interpolation function to be the
+same for both of g1 and g2, then the test error will also be the same.
+
+## Applied
+
+### Question 6
+
+#### a
+\
+```{r question_6_a}
+df_wage <- ISLR::Wage
+
+k <- 10
+max_degree <- 15
+degrees <- seq(max_degree)
+
+cv_results <- rep(0, length(degrees)) %>%
+  setNames(., seq_along(.))
+
+set.seed(1)
+for (degree in seq_along(degrees)) {
+  model <- glm(wage ~ poly(age, degree), data = df_wage)
+  cv_results[[degree]] <- cv.glm(df_wage, model, K = 10)$delta[[1]]
+}
+
+model_full <- lm(wage ~ poly(age, max_degree), data = df_wage)
+
+print(cv_results[cv_results == min(cv_results)])
+
+print(summary(model_full))
+
+model_poly3 <- lm(wage ~ poly(age, 3), data = df_wage)
+
+df_for_plot <- data.frame(
+  age = df_wage$age,
+  predicted_wage = predict(model_poly3),
+  wage = df_wage$wage,
+  label = "predicted_wage"
+)
+
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_point(ggplot2::aes(x = age, y = wage)) +
+  ggplot2::geom_line(ggplot2::aes(x = age, y = predicted_wage, color = label)) +
+  ggplot2::labs(color = NULL)
+
+
+```
+Cross-validation picks a polynomial of degree 6, although the difference in MSE is trivial compared to the degree 3 model. In this case we would probably pick the degree 3 model.
+Since the polynomials are orthogonal, the p-value for the ANOVA between two models that
+differ by one degree is the same as the p-value for that degree in the larger model.
+So we can just look at the significance of each term in the largest model. We see that any degrees larger than 3 are insignificant.
+
+From our plot, we can see that the model fits the bulk of the data well, but misses out on the high earners.
+
+
+#### b
+\
+```{r question_6_b}
+max_cuts <- 15
+
+# since the number of cuts is somewhat small relative to the size of the dataset,
+# we don't have to worry about new factor levels being present in the test set of
+# each cross-validation fold. In production we would need to handle new levels
+# appropriately.
+
+df_wage_with_cuts <- df_wage
+for (n_cuts in seq(2, max_cuts)) {
+  df_wage_with_cuts[[paste0("cut", n_cuts)]] <- cut(df_wage_with_cuts$age, n_cuts)
+}
+cut_vars <- paste0("cut", seq(2, max_cuts))
+
+set.seed(1)
+cv_results <- rep(0, max_cuts - 1) %>%
+  setNames(., seq_along(.))
+for (n_cuts in seq(2, max_cuts)) {
+  model_formula <- as.formula(paste("wage ~", cut_vars[[n_cuts - 1]]))
+  model <- glm(model_formula, data = df_wage_with_cuts)
+
+  cv_results[n_cuts - 1] <- cv.glm(df_wage_with_cuts, model, K = 2)$delta[[1]]
+}
+
+print(cv_results[cv_results == min(cv_results)])
+
+
+final_model <- lm(wage ~ cut10, data = df_wage_with_cuts)
+
+df_for_plot <- data.frame(
+  age = df_wage_with_cuts$age,
+  wage = df_wage_with_cuts$wage,
+  predicted_wage = predict(final_model),
+  label = "predicted_wage"
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_point(ggplot2::aes(x = age, y = wage)) +
+  ggplot2::geom_line(ggplot2::aes(x = age, y = predicted_wage, color = label)) +
+  ggplot2::labs(color = NULL)
+```
+
+Again we see that the model captures the relationship well for most observations, but doesn't
+capture the wage of the high earners.
+
+
+### Question 7
+\
+```{r question_7}
+# compare polynomial regression without extra vars to polynomial regression with extra vars
+
+model_with_extra_vars <- glm(
+  wage ~ poly(age, 3) + year + maritl + race + education +
+  jobclass + health +  health_ins, data = df_wage
+)
+cv_estimate <- cv.glm(df_wage, model_with_extra_vars, K = 10)$delta[[1]]
+
+print(cv_estimate)
+
+
+age_dfs <- seq(4, 6)
+year_dfs <- seq(4,5)
+param_grid <- expand.grid(age_dfs, year_dfs, c("ns", "bs", "s"), stringsAsFactors = FALSE) %>%
+  setNames(., c("age", "year", "spline_type"))
+
+cv_estimates <- rep(0, nrow(param_grid))
+models <- vector("list", length = nrow(param_grid))
+
+set.seed(1)
+for (i in seq(nrow(param_grid))){
+  spline_method <- param_grid[i, "spline_type"]
+  if (identical(spline_method, "s")) {
+    model_function <- gam::gam
+    spline_method <- gam::s
+  } else {
+    model_function <- glm
+    spline_method <- get(spline_method)
+  }
+
+  df_age <- param_grid[i, "age"]
+  df_year <- param_grid[i, "year"]
+  model <- model_function(
+    wage ~ spline_method(age, df = df_age) + spline_method(year, df = df_year) + maritl + race + education +
+    jobclass + health +  health_ins, data = df_wage
+  )
+  models[[i]] <- model
+  cv_estimates[[i]] <- boot::cv.glm(df_wage, model, K = 10)$delta[[1]]
+}
+
+param_grid$cv_estimate <- cv_estimates
+
+best_model_idx <- which.min(param_grid$cv_estimate)
+
+print(param_grid[best_model_idx, ])
+
+
+df_for_plot <- data.frame(
+  wage = df_wage$wage,
+  age = df_wage$age,
+  year = df_wage$year,
+  predicted_wage = predict(models[[best_model_idx]]),
+  label = "predicted wage"
+)
+
+
+plots <- lapply(
+  c("year", "age"),
+  function(var, df) {
+    ggplot2::ggplot(data = df) +
+      ggplot2::geom_point(ggplot2::aes(x = .data[[var]], y = wage)) +
+      ggplot2::geom_smooth(ggplot2::aes(x = .data[[var]], y = predicted_wage, color = label), method = "loess") +
+      ggplot2::labs(color = NULL)
+  },
+  df = df_for_plot
+)
+
+do.call(gridExtra::grid.arrange, plots)
+
+```
+
+
+The best method is a natural spline with 5 degrees of freedom for age and 4 degrees of freedom for year. Note that the decrease in MSE is very small compared to the polynomial of degree 3 and the raw value of year, in addition to the other covariates. Looking at the plots, although we have fit a natural spline to year, the relationship looks very linear. Age is certainly non-linear.
+
+
+### Question 8
+\
+```{r question_8}
+df_auto <- ISLR::Auto
+
+features <- setdiff(colnames(df_auto), c("mpg", "origin", "name"))
+
+model_formula <- as.formula(
+  paste(
+    "mpg ~",
+    paste(
+      paste0("s(", features , ", 4)"),
+      collapse = " + "
+    )
+  )
+)
+model <- gam::gam(model_formula, data = df_auto)
+
+par(mfrow = c(2, 3))
+
+plot(model)
+
+```
+There is evidence of non-linear relationships between all the variables we chose and mpg.
+
+
+### Question 9
+
+#### a
+\
+```{r question_9_a}
+df_boston <- MASS::Boston
+
+
+model <- glm(nox ~ poly(dis, 3), data = df_boston)
+
+print(summary(model))
+
+df_boston$preds <- predict(model)
+df_boston$label <- "predicted_nox"
+
+ggplot2::ggplot(data = df_boston) +
+  ggplot2::geom_point(ggplot2::aes(x = dis, y = nox)) +
+  ggplot2::geom_line(ggplot2::aes(x = dis, y = preds, color = label)) +
+  ggplot2::labs(color = NULL)
+
+```
+
+#### b - c
+\
+```{r question_9_b}
+
+max_poly_degree <- 10
+cv_estimates <- rep(0, max_poly_degree)
+training_rss <- cv_estimates
+for (degree in seq(max_poly_degree)) {
+  model <- glm(nox ~ poly(dis, degree), data = df_boston)
+  training_rss[[degree]] <- model$deviance / (nrow(df_boston))
+  cv_estimates[[degree]] <- cv.glm(df_boston, model, K = 10)$delta[[1]]
+}
+
+df_for_plot <- data.frame(
+  degree = rep(seq_along(cv_estimates), 2),
+  error = c(cv_estimates, training_rss),
+  type = rep(c("cross-validation mse", "training mse"), each = max_poly_degree),
+  training_rss = training_rss
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_line(ggplot2::aes(x = degree, y = error, color = type)) +
+  ggplot2::scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
+
+```
+
+
+As expected, the MSE for the training error decreases as we add more polynomial terms, but the cross-validation error
+reaches a minimum at degree 3.
+
+#### d - f
+```{r question_9_d_f}
+dfs <- seq(4, 10)
+cv_estimates <- rep(0, length(dfs))
+training_rss <- cv_estimates
+for (i in seq_along(dfs)) {
+  df <- dfs[[i]]
+  model <- glm(nox ~ ns(dis, df = df), data = df_boston)
+  training_rss[[i]] <- model$deviance / (nrow(df_boston))
+  cv_estimates[[i]] <- cv.glm(df_boston, model, K = 10)$delta[[1]]
+}
+
+df_for_plot <- data.frame(
+  degree = rep(dfs, 2),
+  error = c(cv_estimates, training_rss),
+  type = rep(c("cross-validation mse", "training mse"), each = length(dfs)),
+  training_rss = training_rss
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_line(ggplot2::aes(x = degree, y = error, color = type)) +
+  ggplot2::scale_x_continuous(breaks = seq(10), minor_breaks = NULL)
+
+```
+
+
+8 degrees of freedom gives the lowest CV error.
+
+
+### Question 10
+
+#### a
+\
+```{r question_10_a}
+df_college <- ISLR::College
+nrows <- nrow(df_college)
+train_idx <- sample(nrows, nrows %/% 2)
+
+df_train <- df_college[train_idx, ]
+df_test <- df_college[-train_idx, ]
+
+n_vars <- ncol(df_train) - 1
+best_subsets <- leaps::regsubsets(Outstate ~ ., data = df_train, nvmax = n_vars, method = "forward")
+
+x_test <- model.matrix(Outstate ~ ., df_test)
+
+mses <- rep(0, n_vars)
+for (i in seq(n_vars)) {
+  coefs <- coef(best_subsets, i)
+  x_test_sub <- x_test[, names(coefs)]
+  preds <- x_test_sub %*% coefs
+  mses[[i]] <- sum((preds - df_test$Outstate) ^ 2) / length(preds)
+}
+
+print(which.min(mses))
+
+coefs <- names(coef(best_subsets, 13))
+continuous_coefs <- setdiff(coefs, c("(Intercept)", "PrivateYes"))
+
+model_formula <- as.formula(
+  paste(
+    "Outstate ~ Private +",
+    paste(continuous_coefs, collapse = " + ")
+  )
+)
+
+best_linear_model <- lm(model_formula, df_train)
+preds <- predict(best_linear_model, df_test)
+test_rmse <- sqrt(sum((preds - df_test$Outstate) ^ 2) / length(preds))
+
+print(test_rmse)
+
+```
+
+We see that the 13 variable model has the lowest test error here. So we fit a GAM using those 13 variables. Note that
+one of the variables is categorical so we don't apply any smoothing to that variable.
+
+
+```{r question_10_b}
+model_formula <- as.formula(
+  paste(
+    "Outstate ~ Private +",
+    paste(
+        paste0("s(", continuous_coefs, ", 4)"),
+        collapse = " + "
+    )
+  )
+)
+
+gam_model <- gam::gam(model_formula, data = df_train)
+
+print(summary(gam_model))
+
+plot(gam_model)
+
+preds <- predict(gam_model, df_test)
+test_rmse <- sqrt(sum((preds - df_test$Outstate) ^ 2) / length(preds))
+print(test_rmse)
+
+```  
+
+We see evidence of non-linearity for many but not all of the covariates, and a corresponding decrease in the test set rmse.
+
+
+### Question 11
+\
+```{r question_11}
+set.seed(1)
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+eps <- rnorm(100, sd = 0.25)
+
+y <- x1 + 2 * x2 + eps
+
+full_model <- lm(y ~ x1 + x2)
+full_model_coefs <- coef(full_model)
+
+print(full_model_coefs)
+
+n_iterations <- 5
+
+beta_0 <- rep(0, n_iterations + 1)
+beta_1 <- rep(0, n_iterations + 1)
+beta_2 <- rep(0, n_iterations + 1)
+
+current_beta_0 <- 0
+current_beta_1 <- 0
+current_beta_2 <- 0
+
+beta_0[[1]] <- current_beta_0
+beta_1[[1]] <- current_beta_1
+beta_2[[1]] <- current_beta_2
+
+for (i in seq(2, n_iterations + 1)) {
+  current_y <- y - current_beta_1 * x1
+  model <- lm(current_y ~ x2)
+  current_beta_2 <- coef(model)[[2]]
+
+  current_y <- y - current_beta_2 * x2
+  model <- lm(current_y ~ x1)
+  current_beta_1 <- coef(model)[[2]]
+
+  current_beta_0 <- coef(model)[[1]]
+
+  beta_0[[i]] <- current_beta_0
+  beta_1[[i]] <- current_beta_1
+  beta_2[[i]] <- current_beta_2
+}
+
+df_backfitting <- data.frame(
+  beta = c(beta_0, beta_1, beta_2),
+  coefficient = rep(c("beta_0", "beta_1", "beta_2"), each = n_iterations + 1),
+  iteration = seq(n_iterations + 1)
+)
+
+df_ols <- data.frame(
+  beta = rep(full_model_coefs, 2),
+  coefficient = rep(c("beta_0_regression", "beta_1_regression", "beta_2_regression"), 2),
+  iteration = rep(c(1, n_iterations + 1), each = 3)
+)
+
+ggplot2::ggplot(data = df_backfitting) +
+  ggplot2::geom_line(ggplot2::aes(x = iteration, y = beta, color = coefficient)) +
+  ggplot2::geom_line(data = df_ols, ggplot2::aes(x = iteration, y=beta, group = coefficient), linetype = 3)
+```
+
+
+The algorithm converges in 2 iterations to the OLS coefficients, which are overlayed as dotted lines on the coefficients from backfitting.
+
+
+### Question 12
+\
+```{r question_12}
+n_iterations <- 10
+nrows <- 10000
+ncols <- 100
+X <- matrix(rnorm(nrows * ncols), nrows, ncols)
+eps <- rnorm(nrows, sd = 0.25)
+actual_betas <- sample(10, 100, replace = TRUE)
+
+y <- X %*% actual_betas + eps
+
+ols_coefs <- coef(lm(y ~ X))
+
+backfit <- function(y, X, n_iterations, ols_coefs) {
+
+  ncols <- ncol(X)
+  current_betas <- rep(0, ncols + 1)
+  mean_squared_error <- rep(0, ncols + 1)
+  mean_squared_error[[1]] <- mean((ols_coefs - current_betas) ^ 2)
+
+  for (i in seq(2, n_iterations + 1)) {
+    for (j in seq(1, length(current_betas) - 1)) {
+      current_beta <- current_betas[[j + 1]]
+      current_x <- X[, j]
+      current_y <- y - X[, -j] %*% current_betas[2:length(current_betas)][-j]
+      model <- lm(current_y ~ current_x)
+      current_betas[[j + 1]] <- coef(model)[[2]]
+    }
+    current_betas[[1]] <- coef(model)[[1]]
+    mean_squared_error[[i]] <- mean((ols_coefs - current_betas) ^ 2)
+
+  }  
+
+  mean_squared_error
+}
+
+
+mean_squared_errors <- backfit(y, X, 10, ols_coefs)
+
+df_for_plot <- data.frame(
+  mean_squared_error = mean_squared_errors,
+  iteration = seq_along(mean_squared_errors)
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_point(ggplot2::aes(x = iteration, y = mean_squared_error))
+
+```
+
+We see that after 3 iterations we have reached almost 0 error already.

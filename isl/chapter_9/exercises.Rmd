@@ -1,0 +1,409 @@
+---
+title: ISLR Chapter 9 Exercises
+date: 2023-07-01
+linkcolor: blue
+toccolor: blue
+output:
+  md_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 3
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, echo = FALSE}
+library(knitr)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r load_libraries}
+library(ggplot2)
+```
+
+
+## Conceptual
+
+### Question 1
+\
+```{r question_1}
+x1 <- seq(-1000, 1000)
+x2 <- 1 + 3 * x1
+x3 <- 1 - x1 / 2
+
+df_for_plot <- data.frame(x1 = x1, x2 = x2, x3 = x3)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_line(ggplot2::aes(x = x1, y = x2), color = "red") +
+  ggplot2::geom_text(x = -500, y = 2000, label = "1 + 3 * X1 - X2 < 0", color = "red") +
+  ggplot2::geom_text(x = 500, y = -2000, label = "1 + 3 * X1 - X2 > 0", color = "red") +
+  ggplot2::geom_line(ggplot2::aes(x = x1, y = x3), color = "black") +
+  ggplot2::geom_text(x = -250, y = -2000, label = "-2 + X1 + 2X2 < 0") +
+  ggplot2::geom_text(x = 250, y = 2000, label = "-2 + X1 + 2X2 > 0")
+
+```
+
+
+### Question 2
+\
+```{r question_2}
+x1 <- seq(-3, 1, length = 1000)
+
+x2 <- c(
+  2 + sqrt(4 - (1 + x1) ^ 2),
+  2 - sqrt(4 - (1 + x1) ^ 2)
+)
+x1 <- rep(x1, 2)
+
+df_for_plot <- data.frame(x1 = x1, x2 = x2)
+
+
+df_test_points <- data.frame(
+  x1 = c(0, -1, 2, 3),
+  x2 = c(0, 1, 2, 8),
+  predicted_class = c("blue", "red", "blue", "blue")
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2)) +
+  ggplot2::geom_text(x = -1, y = 5, label = "(1 + x[1])^2 + (2 - x[2])^2 > 4", parse = TRUE) +
+  ggplot2::geom_text(x = -1, y =2, label = "(1 + x[1])^2 + (2 - x[2])^2 < 4", parse = TRUE) +
+  ggplot2::geom_point(data = df_test_points, ggplot2::aes(x = x1, y = x2, color = predicted_class)) +
+  ggplot2::scale_color_manual(values = list(blue = "blue", red = "red"), breaks = NULL) +
+  ggplot2::lims(x = c(-8, 8), y = c(-5, 8))
+
+
+```
+
+$(1 + X_1)^2 + (2 - X_2)^2 = 4$
+
+$1 + 2X_1 + X_1^2 + 4 - 4X_2 + X_2^2 = 4$
+
+which is linear in $X_1, X_1^2, X_2, X_2^2$
+
+### Question 3
+\
+```{r question_3}
+df <- data.frame(
+  x1 = c(3, 2, 4, 1, 2, 4, 4),
+  x2 = c(4, 2, 4, 4, 1, 3, 1),
+  y = c(rep("red", 4), rep("blue", 3))
+)
+
+support_vectors <- data.frame(
+  x1 = c(2, 4, 2, 4),
+  x2 = c(2, 4, 1, 3)
+)
+
+slope <- 1
+intercept <- -0.5
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = y)) +
+  ggplot2::scale_color_manual(values = list(red = "red", blue = "blue"), breaks = NULL) +
+  ggplot2::geom_abline(intercept = intercept, slope = slope) +
+  ggplot2::geom_abline(intercept = intercept + 0.5, slope = slope, linetype = 3) +
+  ggplot2::geom_abline(intercept = intercept - 0.5, slope = slope, linetype = 3) +
+  ggplot2::geom_point(data = support_vectors, ggplot2::aes(x = x1, y = x2), shape = 4, size = 5) +
+  ggplot2::geom_text(x = 3.5, y = 1.5, label = "red observation s.t problem is \nnot linearly separable")
+
+```
+
+Classify to `red` if $-0.5 + \beta_1  - \beta_2 < 0$, classify to `blue` otherwise. Point 7 is not a support vector so a slight perturbation will not change the optimization problem. Either of the dotted lines would not be the optimal separating hyperplane; the equation of the top line is $\beta_1  - \beta_2 = 0$
+
+## Applied
+
+### Question 4
+\
+```{r question_4}
+nrows <- 100
+ncols <- 2
+set.seed(1)
+x <- matrix(rnorm(nrows * ncols), nrows, ncols)
+response <- x[, 1] + x[, 2] ^ 2
+
+y <- response > 1
+
+# Make the classes clearly separable
+df <- as.data.frame(x) %>%
+  setNames(., c("X1", "X2")) %>%
+  dplyr::mutate(y = as.factor(y)) %>%
+  dplyr::filter(., abs(response - 1) > 0.5)
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = X1, y = X2, color = y), show.legend = FALSE)
+
+
+nrows <- nrow(df)
+train_idx <- sample(nrows, nrows %/% 2)
+df_train <- df[train_idx, ]
+df_test <- df[-train_idx, ]
+
+linear_model <- e1071::svm(y ~ ., data = df_train, kernel = "linear")
+
+table(linear_model$fitted, df_train$y, dnn = c("predicted", "actual"))
+
+mean(linear_model$fitted != df_train$y)
+
+polynomial_model <- e1071::svm(y ~ ., data = df_train, kernel = "polynomial", cost = 100)
+
+table(polynomial_model$fitted, df_train$y, dnn = c("predicted", "actual"))
+
+mean(polynomial_model$fitted != df_train$y)
+
+radial_model <- e1071::svm(y ~ ., data = df_train, kernel = "radial", cost = 100)
+
+table(radial_model$fitted, df_train$y)
+
+mean(radial_model$fitted != df_train$y)
+
+models <- list(linear = linear_model, polynomial = polynomial_model, radial = radial_model)
+for (model_name in names(models)) {
+  preds <- predict(models[[model_name]], df_test)
+  test_error_rate <- mean(preds != df_test$y)
+  print(paste("Test error rate for", model_name, ":", test_error_rate))
+}
+
+plot(linear_model, data = df_train)
+plot(polynomial_model, data = df_train)
+plot(radial_model, data = df_train)
+
+```
+
+The radial model gets perfect training accuracy as well as perfect test accuracy.
+
+
+### Question 5
+\
+```{r question_5}
+ncols <- 2
+nrows <- 500
+set.seed(1)
+
+df <- data.frame(
+  x1 = rnorm(nrows),
+  x2 = rnorm(nrows)
+)
+
+df$y <- as.factor((df$x1 ^ 2 - df$x2 ^ 2) > 0)
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = y), show.legend = FALSE)
+
+model <- glm(y ~ ., data = df, family = "binomial")
+df$logistic_regression_pred <- as.factor(predict(model, type = "response") >= 0.5)
+
+coefs <- coef(model)
+
+decision_boundary_intercept <- -coefs[[1]] / coefs[[3]]
+decision_boundary_slope <- -coefs[[2]] / coefs[[3]]
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = logistic_regression_pred), show.legend = FALSE) +
+  ggplot2::geom_abline(intercept = decision_boundary_intercept, slope = decision_boundary_slope)
+
+model <- glm(y ~ poly(x1, 2) + poly(x2, 2), data = df, family = "binomial")
+df$logistic_regression_non_linear_pred <- as.factor(predict(model, type = "response") >= 0.5)
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = logistic_regression_non_linear_pred), show.legend = FALSE)
+
+# Note that the classes are linearly separable so the coefficient estimates are unstable
+
+model <- e1071::svm(y ~ x1 + x2, data = df, kernel = "linear")
+df$svc_pred <- predict(model)
+
+plot(model, df[c("y", "x1", "x2")])
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = svc_pred), show.legend = FALSE)
+
+model <- e1071::svm(y ~ x1 + x2, data = df, kernel = "radial")
+df$svm_pred <- predict(model)
+
+plot(model, df[c("y", "x1", "x2")])
+
+ggplot2::ggplot(data = df) +
+  ggplot2::geom_point(ggplot2::aes(x = x1, y = x2, color = svm_pred), show.legend = FALSE)
+```
+
+
+### Question 6
+\
+```{r question_6}
+set.seed(1)
+ncols <- 2
+nrows <- 100
+x <- matrix(rnorm(nrows * ncols), nrows, ncols)
+
+y <- as.factor(x[, 1] - x[, 2] > 0)
+
+df <- x %>%
+  as.data.frame(.) %>%
+  setNames(., c("X1", "X2")) %>%
+  dplyr::mutate(., y = y)
+
+df_easily_separable <- df %>%
+  dplyr::filter(., abs(X1 - X2) > 0.4)
+
+df_not_easily_separable <- df %>%
+  dplyr::filter(., abs(X1 - X2) <= 0.05) %>%
+  head(., 1)
+
+df_train <- dplyr::bind_rows(df_easily_separable, df_not_easily_separable)
+
+ggplot2::ggplot(data = df_train) +
+  ggplot2::geom_point(ggplot2::aes(x = X1, y = X2, color = y), show.legend = TRUE)
+
+
+x <- matrix(rnorm(nrows * ncols), nrows, ncols)
+
+y <- as.factor(x[, 1] - x[, 2] > 0)
+
+df_test <- x %>%
+  as.data.frame(.) %>%
+  setNames(., c("X1", "X2")) %>%
+  dplyr::mutate(., y = y)
+
+cv_results <- e1071::tune(
+  e1071::svm, y ~ ., data = df_train,
+  ranges = list(cost = c(0.01, 1, 100, 1000, 5000)), kernel = "linear"
+)
+best_model <- cv_results$best.model
+
+print(summary(cv_results))
+
+train_preds <- predict(best_model)
+
+mean(train_preds != df_train$y)
+
+
+models <- lapply(
+  c(0.01, 1, 100, 1000, 5000) %>% setNames(., .),
+  function(cost, df) {
+    svm(y ~ ., data = df, kernel = "linear", cost = cost)
+  },
+  df = df_train
+)
+
+train_errors <- sapply(
+  models,
+  function(model, df) {
+    mean(predict(model) != df$y)
+  },
+  df = df_train
+)
+
+names(train_errors)[which.min(train_errors)]
+
+test_errors <- sapply(
+  models,
+  function(model, df) {
+    mean(predict(model, df) != df$y)
+  },
+  df = df_test
+)
+
+names(test_errors)[which.min(test_errors)]
+```
+
+
+### Question 7
+
+```{r question_7}
+df_auto <- ISLR::Auto %>%
+  dplyr::mutate(., mpg = as.factor(ifelse(mpg >= median(mpg), 1, 0)))
+
+cross_validation <- e1071::tune(
+  e1071::svm, mpg ~ ., data = df_auto,
+  ranges = list(
+    cost = c(0.01, 0.1, 1, 10, 50, 100, 500),
+    kernel = c("linear", "polynomial", "radial"),
+    degree = c(2, 3, 4),
+    gamma = c(0.01, 0.1, 0.5, 1)
+  )
+)
+
+print(summary(cross_validation))
+
+```
+
+
+### Question 8
+
+```{r question_8}
+df_oj <- ISLR::OJ
+
+train_idx <- sample(nrow(df_oj), 800)
+df_train <- df_oj[train_idx, ]
+df_test <- df_oj[-train_idx, ]
+
+linear_model <- e1071::svm(Purchase ~ ., data = df_train, kernel = "linear", cost = 0.01)
+summary(linear_model)
+
+print(paste("Train error linear default: ", mean(predict(linear_model) != df_train$Purchase)))
+
+print(paste("Test error linear default: ", mean(predict(linear_model, df_test) != df_test$Purchase)))
+
+cv_model <- e1071::tune(
+  e1071::svm, Purchase ~ ., data = df_train, kernel = "linear",
+  ranges = list(cost = c(0.01, 0.1, 1, 100, 500, 1000))
+)
+
+print(summary(cv_model))
+
+best_model <- cv_model$best.model
+
+print(paste("Train error linear best: ", mean(predict(best_model) != df_train$Purchase)))
+
+print(paste("Test error linear best: ", mean(predict(best_model, df_test) != df_test$Purchase)))
+
+
+polynomial_model <- e1071::svm(Purchase ~ ., data = df_train, kernel = "polynomial", cost = 0.01, degree = 2)
+summary(polynomial_model)
+
+print(paste("Train error polynomial default: ", mean(predict(polynomial_model) != df_train$Purchase)))
+
+print(paste("Test error polynomial default: ", mean(predict(polynomial_model, df_test) != df_test$Purchase)))
+
+cv_model <- e1071::tune(
+  e1071::svm, Purchase ~ ., data = df_train, kernel = "polynomial", degree = 2,
+  ranges = list(cost = c(0.01, 0.1, 1, 100, 500, 1000))
+)
+
+print(summary(cv_model))
+
+best_model <- cv_model$best.model
+
+print(paste("Train error polynomial best: ", mean(predict(best_model) != df_train$Purchase)))
+
+print(paste("Test error polynomial best: ", mean(predict(best_model, df_test) != df_test$Purchase)))
+
+radial_model <- e1071::svm(Purchase ~ ., data = df_train, kernel = "radial", cost = 0.01)
+summary(radial_model)
+
+print(paste("Train error radial default: ", mean(predict(radial_model) != df_train$Purchase)))
+
+print(paste("Test error radial default: ", mean(predict(radial_model, df_test) != df_test$Purchase)))
+
+cv_model <- e1071::tune(
+  e1071::svm, Purchase ~ ., data = df_train, kernel = "radial",
+  ranges = list(cost = c(0.01, 0.1, 1, 100, 500, 1000))
+)
+
+print(summary(cv_model))
+
+best_model <- cv_model$best.model
+
+print(paste("Train error radial best: ", mean(predict(best_model) != df_train$Purchase)))
+
+print(paste("Test error radial best: ", mean(predict(best_model, df_test) != df_test$Purchase)))
+
+```
+
+
+Linear kernel performs the best.

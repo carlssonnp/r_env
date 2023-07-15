@@ -1,0 +1,474 @@
+---
+title: ISLR Chapter 6 Exercises
+date: 2023-07-01
+linkcolor: blue
+toccolor: blue
+output:
+  md_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 3
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, echo = FALSE}
+library(knitr)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+```{r load_libraries}
+library(ggplot2)
+library(randomForest)
+library(MASS)
+library(tree)
+library(ISLR)
+library(ROCR)
+library(gbm)
+library(class)
+```
+
+
+## Conceptual
+
+### Question 1
+
+```{r question_1}
+
+line_df <- data.frame(
+  x = c(0, 0, 0, 0.5, 0, 1, 0, 0, 0.5),
+  y = c(0, 0, 0.5, 0, 1, 1, 0.75, 0.125, 0.25),
+  xend = c(0, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1),
+  yend = c(1, 0, 0.5, 1, 1, 0, 0.75, 0.125, 0.25)
+)
+ggplot2::ggplot(data = line_df) +
+  ggplot2::geom_segment(aes(x = x, y = y, xend = xend, yend = yend))
+
+```
+
+
+### Question 2
+Since each tree has depth 1, it follows that each tree only uses a single variable
+for splitting. That is each tree , indexed by `i` has the following functional form:
+
+$c + d\mathbf 1_{x_j <= t_j} = f_i(x_j)$
+
+If multiple trees share the same variable for splitting, we can combine them into a single
+function $g_j = \displaystyle\sum_{i: f_i\,is\,a\,function\,of\,x_j} \lambda f_i(x_j)$.
+So the final model is of the form $\hat{f} = \displaystyle\sum_{j = 1}^{p} g_j(x_j)$,
+which is an additive model of the predictors.
+
+### Question 3
+
+```{r question_3}
+p1 <- seq(0, 1, length = 100)
+p2 <- 1 - p1
+
+df <- data.frame(
+  p1 = p1,
+  p2 = p2,
+  misclassification = 1 - pmax(p1, p2),
+  gini = 2 * p1 * p2,
+  entropy = -p1 * log(p1, 2) - p2 * log(p2, 2)
+)
+
+df <- tidyr::pivot_longer(df, cols = c("misclassification", "gini", "entropy"))
+
+ggplot2:::ggplot(data = df) +
+  ggplot2::geom_line(ggplot2::aes(x = p1, y = value, color = name))
+
+```
+
+
+### Question 4
+
+```{r question_4}
+line_df <- data.frame(
+  x1 = c(-1, -1, 1, -1, 2, -1, -1, 0),
+  x2 = c(0, 1, 0, 0, 0, 2, 3, 1),
+  x1end = c(2, 2, 1, -1, 2, 2, 2, 0),
+  x2end = c(0, 1, 1, 3, 3, 2, 3, 2)
+)
+ggplot2::ggplot(data = line_df) +
+  ggplot2::geom_segment(aes(x = x1, y = x2, xend = x1end, yend = x2end))
+
+```
+
+
+### Question 5
+```{r question_5}
+probs <- c(0.1, 0.15, 0.2, 0.2, 0.55, 0.6, 0.6, 0.65, 0.7, 0.75)
+labels <- ifelse(probs <= 0.5, "Green", "Red")
+label_table <- table(labels)
+
+print(paste("Majority Vote: ", names(label_table)[label_table == max(label_table)]))
+
+print(paste("Average Probability Approach:", if (mean(probs) >= 0.5) "Red" else "Green"))
+```
+
+
+## Applied
+
+### Question 6
+A regression tree is a recursive binary splitting algorithm. Given a set of observations in a node, for each predictor and each value of the predictor, we split the node into two sub-nodes, with observations in each node corresponding to a split of either less than or equal to the threshold, or greater than the threshold. For each split, we calculate the prediction of the children nodes as the mean of the response variable for the observations in that node. We then calculate the total sum of squared errors for each possible split using that prediction, and pick the split with the lowest total sum of squared errors. This process is repeated on the children nodes recursively until the terminal nodes have some minimum number of observations in them, or the tree has reached the maximum allowed depth.
+
+
+### Question 7
+
+```{r question_7}
+df_boston <- MASS::Boston
+nrows <- nrow(df_boston)
+n_predictors <- ncol(df_boston) - 1
+
+set.seed(1)
+train_idx <- sample(nrows, nrows %/% 2)
+
+df_train <- df_boston[train_idx, ]
+df_test <- df_boston[-train_idx, ]
+
+params <- expand.grid(mtry = seq(n_predictors), ntree = c(10, 50, 100, 250, 500, 1000))
+test_error <- rep(0, nrow(params))
+
+for (i in seq_along(test_error)) {
+  model <- do.call(randomForest::randomForest, c(formula = formula(medv ~ .), data = list(df_train), params[i, ]))
+  preds <- predict(model, df_test)
+  test_error[[i]] <- mean((preds - df_test$medv) ^ 2)
+}
+
+params$test_error <- test_error
+
+print(params[which.min(params$test_error), ])
+
+ggplot2::ggplot(data = params) +
+  ggplot2::geom_line(ggplot2::aes(x = mtry, y = test_error, color = as.factor(ntree))) +
+  ggplot2::labs(x = "Number of variables considered at each split", y = "test mean squared error", color = "number of trees")
+```
+
+
+### Question 8
+
+#### a-c
+\
+```{r question_8_a_c}
+df_carseats <- ISLR::Carseats
+nrows <- nrow(df_carseats)
+
+train_idx <- sample(nrows, nrows %/% 2)
+
+df_train <- df_carseats[train_idx, ]
+df_test <- df_carseats[-train_idx, ]
+
+regression_tree <- tree::tree(Sales ~ ., data = df_train)
+
+preds <- predict(regression_tree, df_test)
+
+test_mse <- mean((preds - df_test$Sales) ^ 2)
+
+print(paste("test mse from unpruned regression tree: ", test_mse))
+
+cv_regression_tree <- tree::cv.tree(regression_tree)
+
+print(cv_regression_tree$size[which.min(cv_regression_tree$dev)])
+
+plot(cv_regression_tree)
+
+```
+
+We see that the best cross-validation sum of squared errors occurs when we use the model
+without any pruning.
+
+
+```{r question_8_d}
+bagged_model <- randomForest::randomForest(Sales ~ ., data = df_train, mtry = ncol(df_train) - 1, importance = TRUE)
+
+preds <- predict(bagged_model, df_test)
+
+test_mse <- mean((preds - df_test$Sales) ^ 2)
+
+
+print(paste("test mse from bagged model: ", test_mse))
+
+print(importance(bagged_model))
+
+
+```
+
+Bagging improves the test mse considerably. The education variable actually decreases the MSE
+using permutation importance on the OOB samples.
+
+
+```{r question_8_e}
+param_grid <- expand.grid(mtry = seq(ncol(df_train) - 1), ntree = c(10, 20, 50, 100, 500, 1000))
+n_params <- nrow(param_grid)
+test_mses <- rep(0, n_params)
+models <- vector("list", length = n_params)
+
+set.seed(1)
+for (i in seq(n_params)) {
+  model <- do.call(
+    randomForest::randomForest,
+    c(formula = formula(Sales ~ .), data = list(df_train), importance = TRUE, param_grid[i, ])
+  )
+  preds <- predict(model, df_test)
+  test_mses[[i]] <- mean((preds - df_test$Sales) ^ 2)
+  models[[i]] <- model
+}
+
+param_grid$test_mse <- test_mses
+best_model_idx <- which.min(test_mses)
+best_model_params <- param_grid[best_model_idx, ]
+
+print(best_model_params)
+
+ggplot2::ggplot(data = param_grid) +
+  ggplot2::geom_line(ggplot2::aes(x = mtry, y = test_mse, color = as.factor(ntree))) +
+  ggplot2::labs(x = "Number of variables considered", y = "test mse", color = "number of trees")
+
+print(importance(models[[best_model_idx]]))
+```
+
+
+`ShelveLoc` and `Price` are the most important variables by both metrics. The random forest slightly outperforms the bagged model.
+
+
+
+### Question 9
+
+```{r question_9}
+df_oj <- ISLR::OJ
+set.seed(1)
+
+train_idx <- sample(nrow(df_oj), 800)
+
+df_train <- df_oj[train_idx, ]
+df_test <- df_oj[-train_idx, ]
+
+
+models <- list(
+  gini = NULL,
+  deviance = NULL
+)
+test_aucs <- rep(0, length(models)) %>%
+  setNames(., names(models))
+
+for (method in c("gini", "deviance")) {
+  model <- tree::tree(Purchase ~ ., data = df_train, split = method)
+  models[[method]] <- model
+  test_preds <- predict(model, df_test)[, "MM"]
+
+  dep_var <- ifelse(df_test$Purchase == "MM", 1, 0)
+  predob <- prediction(test_preds, dep_var)
+  auc <- performance(predob, "auc")@y.values[[1]]
+  test_aucs[[method]] <- auc
+}
+
+
+for (model_name in names(models)){
+  print(model_name)
+  print(summary(models[[model_name]]))
+}
+
+print(test_aucs)
+
+
+plot(models$deviance)
+text(models$deviance)
+
+
+test_preds <- predict(models$deviance, df_test, type = "class")
+
+table(test_preds, df_test$Purchase, dnn = c("Predicted", "Actual"))
+
+mean(test_preds != df_test$Purchase)
+
+cv_tree <- tree::cv.tree(models$deviance, FUN = prune.misclass)
+
+plot(cv_tree)
+
+smaller_tree <- tree::prune.tree(models$deviance, best = 7, method = "misclass")
+
+test_preds <- predict(models$deviance, df_test, type = "class")
+
+table(test_preds, df_test$Purchase, dnn = c("Predicted", "Actual"))
+
+mean(test_preds != df_test$Purchase)
+
+
+```
+
+
+We see that the model built using Gini has better training deviance but worse AUC on the test set. It is likely overfit, especially given the large number of terminal nodes.
+The model built using deviance has slightly higher error rate on the test set than on the training set, which is to be expected. The best tree using cross validation uses 7 terminal nodes. It has the same misclassification error as the full tree on the test set.
+
+
+### Question 10
+
+```{r question_10}
+df_hitters <- ISLR::Hitters %>%
+  dplyr::filter(., !is.na(Salary)) %>%
+  dplyr::mutate(., Salary = log(Salary))
+
+train_idx <- seq(200)
+df_train <- df_hitters[train_idx, ]
+df_test <- df_hitters[-train_idx, ]
+
+etas <- c(0.001, 0.01, 0.05, 0.1, 0.5, 1)
+test_mse <- rep(0, length(etas)) %>%
+  setNames(., etas)
+
+models <- vector("list", length = length(etas)) %>%
+  setNames(., etas)
+
+
+for (eta in etas) {
+  model <- gbm::gbm(Salary ~ ., data = df_train, n.trees = 1000, shrinkage = eta, distribution = "gaussian")
+  models[[as.character(eta)]] <- model
+  preds <- predict(model, df_test)
+  test_mse[[as.character(eta)]] <- mean((preds - df_test$Salary) ^ 2)
+}
+
+
+df_for_plot <- data.frame(
+  shrinkage = etas,
+  test_mse = test_mse
+)
+
+ggplot2::ggplot(data = df_for_plot) +
+  ggplot2::geom_line(ggplot2::aes(x = shrinkage, y = test_mse))
+
+
+best_idx <- which.min(test_mse)
+print(min(test_mse))
+
+
+x_train <- model.matrix(Salary ~ ., df_train)
+y_train <- df_train$Salary
+
+x_test <- model.matrix(Salary ~ ., df_test)
+
+# Ridge regression
+glmnet_model <- glmnet::cv.glmnet(x_train, y_train)
+
+glmnet_preds <- predict(glmnet_model, x_test)
+
+print(paste("Lasso test mse", mean((glmnet_preds - df_test$Salary) ^ 2)))
+
+
+ols_model <- lm(Salary ~ ., data = df_train)
+ols_preds <- predict(ols_model, df_test)
+
+print(paste("Ols test mse", mean((ols_preds - df_test$Salary) ^ 2)))
+
+
+summary(models[[best_idx]])
+
+
+bagged_model <- randomForest::randomForest(Salary ~ ., data = df_train, mtry = ncol(df_train) - 1)
+
+bagged_preds <- predict(bagged_model, df_test)
+
+print(paste("Bagging test mse", mean((bagged_preds - df_test$Salary) ^ 2)))
+
+```
+
+
+Boosting performs much better than both LASSO and OLS. `CHits` and  `CAtBat` are the most important variables. Bagging performs slightly better than boosting on this problem.
+
+
+
+### Question 11
+
+```{r question_11}
+set.seed(1)
+df_caravan <- ISLR::Caravan
+df_caravan$Purchase <- ifelse(df_caravan$Purchase == "Yes", 1, 0)
+
+train_idx <- seq(1000)
+
+df_train <- df_caravan[train_idx, ]
+df_test <- df_caravan[-train_idx, ]
+
+model <- gbm::gbm(Purchase ~., data = df_train, n.trees = 1000, shrinkage = 0.01)
+
+summary(model)
+
+preds <- predict(model, df_test, type = "response")
+pred_labels <- ifelse(preds >= 0.2, 1, 0)
+
+table(pred_labels, df_test$Purchase, dnn = c("predicted", "actual"))
+
+
+print(paste("Precision from gbm:", 33 / (33 + 123) ))
+
+x_train <- model.matrix(Purchase ~ ., data = df_train)
+x_test <- model.matrix(Purchase ~ ., data = df_test)
+y_train <- df_train$Purchase
+
+knn_preds <- class::knn(x_train, x_test, y_train, k = 8, prob = TRUE)
+probs <- attr(knn_preds, "prob")
+probs <- ifelse(knn_preds == 1, probs, 1 - probs )
+
+pred_labels <- ifelse(probs >= 0.2, 1, 0)
+
+table(pred_labels, df_test$Purchase, dnn = c("predicted", "actual"))
+
+print(paste("Precision from knn:", 67 / (67 + 513)))
+
+logistic_regression_model <- glm(Purchase ~ ., data = df_train, family = "binomial")
+preds <- predict(logistic_regression_model, df_test, type = "response")
+
+pred_labels <- ifelse(preds >= 0.2, 1, 0)
+
+table(pred_labels, df_test$Purchase, dnn = c("predicted", "actual"))
+
+print(paste("Precision from LR:", 58 / (58 + 350) ))
+
+```
+
+
+### Question 12
+
+
+```{r question_12}
+df_auto <- ISLR::Auto %>%
+  dplyr::select(., -name) %>%
+  dplyr::mutate(., mpg = ifelse(mpg >= median(mpg), 1, 0))
+
+nrows <- nrow(df_auto)
+
+set.seed(1)
+train_idx <- sample(nrows, nrows %/% 2)
+
+df_train <- df_auto[train_idx, ]
+df_test <- df_auto[-train_idx, ]
+
+bagged_model <- randomForest::randomForest(as.factor(mpg) ~ ., data = df_train, mtry = ncol(df_train) - 1)
+
+preds_bagged <- predict(bagged_model, df_test)
+
+
+print(paste("error rate from bagging trees:", mean(preds_bagged != df_test$mpg)))
+
+
+random_forest_model <- randomForest::randomForest(as.factor(mpg) ~ ., data = df_train)
+
+
+preds_random_forest <- predict(random_forest_model, df_test)
+
+print(paste("error rate from random forest:", mean(preds_random_forest != df_test$mpg)))
+
+boosted_model <- gbm::gbm(mpg ~ ., data = df_train, n.trees = 1000, shrinkage = 0.05)
+
+preds_boosted <- predict(boosted_model, df_test, type = "response")
+preds_boosted <- preds_boosted >= 0.5
+
+
+print(paste("error rate from gbm:", mean(preds_boosted != df_test$mpg)))
+
+```
+
+random forest and bagging have the same error rate on the test set, while boosting has slightly higher error. 
