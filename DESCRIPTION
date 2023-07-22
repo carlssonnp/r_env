@@ -26,4 +26,5 @@ Imports:
     gbm,
     e1071,
     ROCR,
-    rmarkdown
+    rmarkdown,
+    ISLR2

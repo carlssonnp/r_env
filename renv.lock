@@ -44,6 +44,16 @@
       ],
       "Hash": "bc04429c6428a790926f7053a6fa4815"
     },
+    "ISLR2": {
+      "Package": "ISLR2",
+      "Version": "1.3-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "6813b3dabcc4bfd421d33cb230a327c0"
+    },
     "KernSmooth": {
       "Package": "KernSmooth",
       "Version": "2.23-20",
